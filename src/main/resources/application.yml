@@ -1,0 +1,13 @@
+# 数据库配置
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/smuoj
+    username: root
+    password: fsy123
+  thymeleaf:
+    cache: false
+
+# 服务器相关配置
+server:
+  port: 11224
