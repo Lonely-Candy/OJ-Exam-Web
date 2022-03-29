@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>考试后台</title>
+    <link rel="icon" th:href="@{/favicon.ico}">
+
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/font-awesome.min.css?v=4.4.0}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+
+</head>
+<body class="fixed-sidebar full-height-layout gray-bg" style="overflow:hidden">
+
+<!-- 引入头部导航栏 -->
+<!--<div th:replace="navigation/topNav :: topNav"></div>-->
+
+<div id="wrapper">
+    <!-- 引入左侧导航栏 -->
+    <div th:if="${#session.getAttribute('isAdmin')}">
+        <div th:replace="~{navigation/leftNav :: leftNav(true)}"></div>
+    </div>
+    <div th:if="${!#session.getAttribute('isAdmin')}">
+        <div th:replace="~{navigation/leftNav :: leftNav(false)}"></div>
+    </div>
+
+    <!-- 右侧内容显示 -->
+    <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div class="row border-bottom">
+            <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
+                <ul class="nav navbar-top-links navbar-right">
+                    <li class="dropdown">
+                        <i class="fa fa-user"></i>
+                        [[${#session.getAttribute("isAdmin") ? #session.getAttribute("loginUserData").getAdminid() :
+                        #session.getAttribute("loginUserData").getUserid()}]]
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle count-info" th:href="@{/logout}">
+                            退出
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="row J_mainContent" id="content-main">
+            <iframe id="J_iframe" width="100%" height="100%" frameborder="0"
+                    data-id="index_v1.html" seamless></iframe>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- 全局js -->
+<script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
+<script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
+<script th:src="@{/hAdmin/js/plugins/metisMenu/jquery.metisMenu.js}"></script>
+<script th:src="@{/hAdmin/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
+<script th:src="@{/hAdmin/js/plugins/layer/layer.min.js}"></script>
+
+<!-- 自定义js -->
+<script th:src="@{/hAdmin/js/hAdmin.js?v=4.1.0}"></script>
+<script type="text/javascript" th:src="@{/hAdmin/js/index.js}"></script>
+
+<!-- 第三方插件 -->
+<script th:src="@{/hAdmin/js/plugins/pace/pace.min.js}"></script>
+
+<script>
+    if (window.parent !== window.self) {
+        window.parent.location.reload();
+    }
+</script>
+</body>
+</html>

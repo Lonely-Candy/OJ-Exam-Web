@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>学生列表</title>
+    <link rel="icon" th:href="@{/favicon.ico}">
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        .dropdown-submenu {
+            position: relative;
+        }
+
+        .dropdown-submenu a::after {
+            transform: rotate(-90deg);
+            position: absolute;
+            right: 6px;
+            top: .8em;
+        }
+
+        .dropdown-submenu .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-left: .1rem;
+            margin-right: .1rem;
+        }
+
+        .icon-demo .bi, .icon-demo-examples .bi {
+            width: 1em;
+            height: 1em;
+        }
+
+        .bi {
+            display: inline-block;
+            vertical-align: -0.125em;
+        }
+    </style>
+
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <!-- 详细内容展示 -->
+        <main style="margin-top: 10px" role="main" class="col align-self-center">
+            <!-- 引入考试相关导航 -->
+            <div th:replace="~{navigation/examNav :: examNav('studentlist')}"></div>
+            <!-- 搜索栏 -->
+            <div class="ibox-content">
+                <form style="margin-top: 10px" role="form" class="form-inline">
+                    <div class="form-group mx-sm-3">
+                        <label class="sr-only">班级</label>
+                        <select class="form-control" name="">
+                            <option></option>
+                            <option>18物联网工程1班</option>
+                            <option>18物联网工程2班</option>
+                            <option>18通信工程1班</option>
+                            <option>18通信工程2班</option>
+                        </select>
+                    </div>
+                    <div class="form-group mx-sm-3">
+                        <label class="sr-only">模糊搜索</label>
+                        <input type="text" name="" class="form-control" placeholder="请输入学生学号或姓名">
+                    </div>
+                    <div class="form-group mx-sm-3">
+                        <button class="btn btn-primary" type="submit">搜索</button>
+                        <button class="btn btn-danger mx-sm-2" type="submit">清空</button>
+                    </div>
+                </form>
+            </div>
+            <!-- 学生列表 -->
+            <div style="margin-top: 20px">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">考生姓名</th>
+                        <th scope="col">开始答题时间</th>
+                        <th scope="col">结束答题时间</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <a href="#">20180865114 范颂扬</a>
+                        </td>
+                        <td>2022-03-11 16:00:00</td>
+                        <td>2022-03-11 17:00:00</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#">20180865127 程涵</a>
+                        </td>
+                        <td>2022-03-11 16:00:00</td>
+                        <td>2022-03-11 17:00:00</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script th:src="@{/webjars/jquery/3.5.1/jquery.slim.min.js}"></script>
+<script th:src="@{/webjars/popper.js/1.16.0/umd/popper.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.6.1/js/bootstrap.min.js}"></script>
+</body>
+</html>

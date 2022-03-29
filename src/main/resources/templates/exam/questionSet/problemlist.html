@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>题目列表</title>
+    <link rel="icon" th:href="@{/favicon.ico}">
+
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+
+    <style>
+        .inline-style {
+            display: inline-flex;
+        }
+
+        .problem-score {
+            background-color: #e1e7ee;
+            display: flex;
+            align-items: center;
+            text-align: center;
+        }
+
+        .input-answer {
+            max-width: none;
+            width: 19.2ch;
+            max-height: 500px;
+            display: inline-flex;
+        }
+
+        .input-answer-addon {
+            min-width: 60px;
+            align-items: center;
+            text-align: center;
+            background-color: #e1e7ee;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <!-- 详细内容展示 -->
+        <main style="margin-top: 10px" role="main" class="col align-self-center">
+            <!-- 引入考试相关导航 -->
+            <div th:replace="~{navigation/examNav :: examNav('problemlist')}"></div>
+            <!-- 题目列表 -->
+            <div style="margin-top: 20px">
+                <div class="container">
+                    <div class="row">
+                        <div th:if="${#session.getAttribute('isAdmin')}" class="col">
+                            <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#addProblemModal"
+                                    type="button"><i
+                                    class="fa fa-paste"></i> 添加题目
+                            </button>
+                            <button class="btn btn-warning btn-sm" data-toggle="modal"
+                                    data-target="#alterProblemScoreModal"
+                                    type="button"><i
+                                    class="fa fa-wrench"></i> 批量修改分数
+                            </button>
+                        </div>
+                        <div th:if="${!#session.getAttribute('isAdmin')}" class="col">
+                            <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#addProblemModal"
+                                    type="button"> 提交考试
+                            </button>
+                        </div>
+                        <div style="margin-top: 10px" class="col">
+                            <!-- 题型导航 -->
+                            <ul class="nav nav-tabs">
+                                <li class="active">
+                                    <a data-toggle="tab" href="#problem-1" aria-expanded="true">填空题 <span
+                                            class="badge badge-info">4</span></a>
+                                </li>
+                                <li class="">
+                                    <a data-toggle="tab" href="#problem-2" aria-expanded="false">编程填空题 <span
+                                            class="badge badge-info">4</span></a>
+                                </li>
+                            </ul>
+                            <!-- 题目表格 -->
+                            <div th:if="${#session.getAttribute('isAdmin')}" class="tab-content">
+                                <!-- 填空题 -->
+                                <div id="problem-1" class="tab-pane active">
+                                    <div class="panel-body">
+                                        <table class="table">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">题号</th>
+                                                <th scope="col">标题</th>
+                                                <th scope="col">分数</th>
+                                                <th th:if="${!#session.getAttribute('isAdmin')}" scope="col">答题情况</th>
+                                                <th th:if="${#session.getAttribute('isAdmin')}" scope="col">操作</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <th scope="row">C-1</th>
+                                                <td>
+                                                    <a href="#">第一题</a>
+                                                </td>
+                                                <td>5</td>
+                                                <td>
+                                                    <span th:if="${!#session.getAttribute('isAdmin')}"
+                                                          class="glyphicon glyphicon-ok text-success"></span>
+                                                    <button th:if="${#session.getAttribute('isAdmin')}" type="button"
+                                                            class="btn btn-sm btn-outline-danger">删除
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">C-2</th>
+                                                <td>
+                                                    <a href="#">第二题</a>
+                                                </td>
+                                                <td>5</td>
+                                                <td>
+                                                    <span th:if="${!#session.getAttribute('isAdmin')}"
+                                                          class="glyphicon glyphicon-ok text-success"></span>
+                                                    <button th:if="${#session.getAttribute('isAdmin')}" type="button"
+                                                            class="btn btn-sm btn-outline-danger">删除
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">C-3</th>
+                                                <td>
+                                                    <a href="#">第三题</a>
+                                                </td>
+                                                <td>5</td>
+                                                <td>
+                                                    <span th:if="${!#session.getAttribute('isAdmin')}"
+                                                          class="glyphicon glyphicon-ok text-success"></span>
+                                                    <button th:if="${#session.getAttribute('isAdmin')}" type="button"
+                                                            class="btn btn-sm btn-outline-danger">删除
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">C-4</th>
+                                                <td>
+                                                    <a href="#">第四题</a>
+                                                </td>
+                                                <td>5</td>
+                                                <td>
+                                                    <span th:if="${!#session.getAttribute('isAdmin')}"
+                                                          class="glyphicon glyphicon-ok text-success"></span>
+                                                    <button th:if="${#session.getAttribute('isAdmin')}" type="button"
+                                                            class="btn btn-sm btn-outline-danger">删除
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- 编程填空题 -->
+                                <div id="problem-2" class="tab-pane">
+                                    <div class="panel-body">
+                                        <table class="table">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">题号</th>
+                                                <th scope="col">标题</th>
+                                                <th scope="col">分数</th>
+                                                <th scope="col">操作</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <th scope="row">P-1</th>
+                                                <td>
+                                                    <a href="#">第一题</a>
+                                                </td>
+                                                <td>5</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger">删除
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">P-2</th>
+                                                <td>
+                                                    <a href="#">第二题</a>
+                                                </td>
+                                                <td>5</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger">删除
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">P-3</th>
+                                                <td>
+                                                    <a href="#">第三题</a>
+                                                </td>
+                                                <td>5</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger">删除
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">P-4</th>
+                                                <td>
+                                                    <a href="#">第四题</a>
+                                                </td>
+                                                <td>5</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger">删除
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${!#session.getAttribute('isAdmin')}" class="tab-content">
+                                <!-- 填空题 -->
+                                <div id="problem-1" class="tab-pane active">
+                                    <div class="ibox float-e-margins">
+                                        <div class="ibox-title">
+                                            <h5><strong>C-1</strong></h5>
+                                            <div class="ibox-tools">
+                                                <span class="label label-primary">出题人：smfsy</span>
+                                                <span class="badge badge-success pull-right">分数：4分</span>
+                                            </div>
+                                        </div>
+                                        <div class="ibox-content">
+                                            <div class="feed-activity-list">
+                                                    <div class="feed-element">
+                                                        <div class="media-body ">
+                                                            <div class="lead">
+                                                                Java把数据类型分为
+                                                                <div class="input-answer input-group m-b">
+                                                                    <input type="text" class="form-control"> <span
+                                                                        class="input-answer-addon input-group-addon">2 分</span>
+                                                                </div>
+                                                                和
+                                                                <div class="input-answer input-group m-b">
+                                                                    <input type="text" class="form-control"> <span
+                                                                        class="input-answer-addon input-group-addon">2 分</span>
+                                                                </div>
+                                                                。
+                                                            </div>
+                                                            <div class="actions">
+                                                                <nav aria-label="...">
+                                                                    <ul class="pager">
+                                                                        <li><a href="#">上一题</a></li>
+                                                                        <li><a href="#">下一题</a></li>
+                                                                    </ul>
+                                                                </nav>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 编程填空题 -->
+                                <div id="problem-2" class="tab-pane">
+                                    <div class="panel-body">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- 添加题目模态框 -->
+            <div th:if="${#session.getAttribute('isAdmin')}" class="modal fade" id="addProblemModal"
+                 data-backdrop="static" data-keyboard="false" tabindex="-1"
+                 aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">添加题目</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="input-group">
+                                <input type="text" placeholder="搜索题目" class="input form-control">
+                                <span class="input-group-btn">
+                                        <button type="button" class="btn btn btn-primary btn-sm"> <i
+                                                class="fa fa-search"></i> 搜索</button>
+                                </span>
+                            </div>
+                            <div class="clients-list">
+                                <!-- 模态框-导航栏 -->
+                                <ul class="nav nav-tabs">
+                                    <li class="active"><a data-toggle="tab" href="#tab-1"><i class="fa fa-user"></i> 填空题</a>
+                                    </li>
+                                    <li class=""><a data-toggle="tab" href="#tab-2"><i class="fa fa-briefcase"></i>
+                                        编程填空题</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <!-- 填空题列表 -->
+                                    <div id="tab-1" class="active tab-pane">
+                                        <div class="full-height-scroll">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td class="project-status">
+                                                            <input type="checkbox" class="i-checks" name="input[]">
+                                                        </td>
+                                                        <td class="project-title">
+                                                            <a type="button" data-toggle="modal" href="#"
+                                                               data-target="#showProblemModal">
+                                                                python中，使用号表示单行注释。
+                                                            </a>
+                                                            <br/>
+                                                            <small>smfsy.创建于 2014.08.15</small>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 编程填空题列表 -->
+                                    <div id="tab-2" class="tab-pane">
+                                        <div class="full-height-scroll">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td class="project-status">
+                                                            <input type="checkbox" class="i-checks" name="input[]">
+                                                        </td>
+                                                        <td class="project-title">
+                                                            <a href="#">
+                                                                python中，使用号表示单行注释。
+                                                            </a>
+                                                            <br/>
+                                                            <small>smfsy.创建于 2014.08.15</small>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                            <button type="button" class="btn btn-primary">添加</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 显示题目模态框 -->
+            <div th:if="${#session.getAttribute('isAdmin')}" class="modal inmodal" id="showProblemModal" tabindex="-1"
+                 role="dialog" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content animated flipInY">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span
+                                    aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <h4 class="modal-title">题目预览</h4>
+                            <small class="font-bold">smfsy.创建于 2014.08.15</small>
+                        </div>
+                        <div class="modal-body">
+                            <div class="problem-content">
+                                python中，使用
+                                <span>
+                                    <div class="inline-style">
+                                        <input class="problem-value" type="text" disabled value="#">
+                                        <div class="problem-score">10分</div>
+                                    </div>
+                                </span>
+                                号表示单行注释。
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 批量修改分数模态框 -->
+            <div th:if="${#session.getAttribute('isAdmin')}" class="modal fade" id="alterProblemScoreModal"
+                 data-backdrop="static" data-keyboard="false"
+                 tabindex="-1"
+                 aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">批量修改题目分数</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- 模态框-导航栏 -->
+                            <ul class="nav nav-tabs">
+                                <li class="active">
+                                    <a data-toggle="tab" href="#select-1"><i class="fa fa-user"></i>填空题</a>
+                                </li>
+                                <li class="">
+                                    <a data-toggle="tab" href="#select-2"><i class="fa fa-briefcase"></i>编程填空题</a>
+                                </li>
+                            </ul>
+                            <div style="margin-top: 5px" class="tab-content">
+                                <!-- 填空题列表 -->
+                                <div id="select-1" class="active tab-pane">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>标号</th>
+                                            <th>标题</th>
+                                            <th>原题目总分</th>
+                                            <th>填空题序号</th>
+                                            <th>填空题分数</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td rowspan="2">L1-1</td>
+                                            <td rowspan="2">python中，使用号表示单行注释。</td>
+                                            <td rowspan="2">10</td>
+                                            <td>1</td>
+                                            <td>5</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="display: none" rowspan="2">L1-1</td>
+                                            <td style="display: none" rowspan="2">python中，使用号表示单行注释。</td>
+                                            <td style="display: none" rowspan="2">10</td>
+                                            <td>2</td>
+                                            <td>5</td>
+                                        </tr>
+                                        <tr>
+                                            <td rowspan="3">L1-2</td>
+                                            <td rowspan="3">python中，使用号表示单行注释。</td>
+                                            <td rowspan="3">9</td>
+                                            <td>1</td>
+                                            <td>3</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="display: none" rowspan="3">L1-2</td>
+                                            <td style="display: none" rowspan="3">python中，使用号表示单行注释。</td>
+                                            <td style="display: none" rowspan="3">10</td>
+                                            <td>2</td>
+                                            <td>3</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="display: none" rowspan="3">L1-2</td>
+                                            <td style="display: none" rowspan="3">python中，使用号表示单行注释。</td>
+                                            <td style="display: none" rowspan="3">10</td>
+                                            <td>3</td>
+                                            <td>3</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- 编程填空题列表 -->
+                                <div id="select-2" class="tab-pane">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                            <button type="button" class="btn btn-primary">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
+<script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
+
+<script th:src="@{/hAdmin/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
+
+<!-- 自定义js -->
+<script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
+<script>
+    $(function () {
+        $('.full-height-scroll').slimScroll({
+            height: '100%'
+        });
+    });
+</script>
+
+</body>
+</html>

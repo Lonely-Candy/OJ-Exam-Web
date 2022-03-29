@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>填空题题库</title>
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+</head>
+<body class="gray-bg">
+
+<div class="wrapper wrapper-content animated fadeInUp">
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>填空题集</h5>
+                </div>
+                <div class="ibox-content">
+                    <!-- 搜索框 -->
+                    <div class="row m-b-sm m-t-sm">
+                        <div class="col-md-12">
+                            <div class="input-group">
+                                <input type="text" placeholder="请输入题目信息" class="input-sm form-control"> <span
+                                    class="input-group-btn">
+                                        <button type="button" class="btn btn-sm btn-primary"> 搜索</button> </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 题目表格 -->
+                    <div class="project-list">
+                        <table class="table table-hover">
+                            <tbody>
+                            <tr>
+                                <td class="project-status">
+                                    <span class="label label-primary">01</span>
+                                </td>
+                                <td class="project-title">
+                                    <a href="project_detail.html">python中，使用号表示单行注释。</a>
+                                    <br/>
+                                    <small>smfsy 创建于 2014.08.15</small>
+                                </td>
+                                <td class="project-actions">
+                                    <a href="#" class="btn btn-danger btn-sm">
+                                        <i class="fa fa-remove"></i> 删除 </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="project-status">
+                                    <span class="label label-primary">02</span>
+                                </td>
+                                <td class="project-title">
+                                    <a href="project_detail.html">python中，使用号表示单行注释。</a>
+                                    <br/>
+                                    <small>smfsy 创建于 2014.08.15</small>
+                                </td>
+                                <td class="project-actions">
+                                    <a href="#" class="btn btn-danger btn-sm">
+                                        <i class="fa fa-remove"></i> 删除 </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
+<script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
+
+<!-- 自定义js -->
+<script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
+</body>
+</html>

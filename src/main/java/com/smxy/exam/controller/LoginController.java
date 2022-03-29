@@ -69,7 +69,7 @@ public class LoginController {
         loginUserData = isAdmin ? queryAdminResult : queryUserResult;
         session.setAttribute("isAdmin", isAdmin);
         session.setAttribute("loginUserData", loginUserData);
-        return "exam/examlist.html";
+        return "redirect:/main.html";
     }
 
     /**

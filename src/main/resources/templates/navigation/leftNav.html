@@ -5,42 +5,61 @@
     <title>左侧导航栏</title>
 </head>
 <body>
-<nav th:fragment="leftNav(isAdmin, activeUrl)" id="sidebarMenu"
-     class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-    <div class="sidebar-sticky pt-3">
-        <ul th:if="${!isAdmin}" class="nav flex-column">
-            <!-- 学生导航栏 -->
-            <li class="nav-item">
-                <a th:class="${activeUrl == 'examlist' ? 'nav-link active' : 'nav-link'}"
-                   th:href="@{${activeUrl == 'examlist' ? '#' : '/exam/examlist.html'}}">
-                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-house-fill"
-                         fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                              d="M8 3.293l6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293l6-6zm5-.793V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/>
-                        <path fill-rule="evenodd"
-                              d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z"/>
-                    </svg>
-                    考试列表
-                </a>
+
+<nav th:fragment="leftNav(isAdmin)" class="navbar-default navbar-static-side" role="navigation">
+    <div class="nav-close"><i class="fa fa-times-circle"></i>
+    </div>
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+            <li class="nav-header">
+                <div class="dropdown profile-element">
+                    <a data-toggle="dropdown" class="dropdown-toggle" th:href="@{/index.html}">
+                        <span class="clear">
+                            <span class="block m-t-xs" style="font-size:20px;">
+                                <i class="fa fa-bank"></i>
+                                <strong class="font-bold">三明学院</strong>
+                            </span>
+                        </span>
+                    </a>
+                </div>
             </li>
-        </ul>
-        <ul th:if="${isAdmin}" class="nav flex-column">
-            <!-- 教师导航栏 -->
-            <li class="nav-item dropdown">
-                <a th:class="${activeUrl == 'examlist' ? 'nav-link dropdown-toggle active' : 'nav-link dropdown-toggle'}"
-                   th:href="@{${activeUrl == 'examlist' ? '#' : '/exam/examlist.html'}}" id="navbarDropdownLink"
-                   data-toggle="dropdown" aria-has="true" aria-expanded="false">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                         class="bi bi-card-list" viewBox="0 0 16 16">
-                        <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/>
-                        <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
-                    </svg>
-                    考试列表
+            <!-- 考试导航栏 -->
+            <li>
+                <a href="#">
+                    <i class="fa fa fa-book"></i>
+                    <span class="nav-label">考试</span>
+                    <span class="fa arrow"></span>
                 </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                    <li><a class="dropdown-item" th:href="@{/exam/addExam.html}">添加考试</a></li>
+                <ul class="nav nav-second-level">
+                    <li>
+                        <a class="J_menuItem" th:href="@{/examlist}">考试列表</a>
+                    </li>
+                    <li th:if="${isAdmin}">
+                        <a class="J_menuItem" th:href="@{/exam/addExam.html}">添加考试</a>
+                    </li>
                 </ul>
             </li>
+            <li class="line dk"></li>
+            <!-- 题库导航栏 -->
+            <li th:if="${isAdmin}">
+                <a href="#">
+                    <i class="fa fa fa-cube"></i>
+                    <span class="nav-label">题库</span>
+                    <span class="fa arrow"></span>
+                </a>
+                <ul class="nav nav-second-level">
+                    <li>
+                        <a th:href="@{/exam/questionBank/completionBank.html}" class="J_menuItem">填空题集</a>
+                    </li>
+                    <li>
+                        <a th:href="@{/exam/questionBank/procedureBank.html}" class="J_menuItem">编程填空题集</a>
+                    </li>
+                    <li>
+                        <a th:href="@{/exam/questionBank/addQuestion.html}" class="J_menuItem">添加题目</a>
+                    </li>
+                </ul>
+            </li>
+            <li class="line dk"></li>
         </ul>
     </div>
 </nav>

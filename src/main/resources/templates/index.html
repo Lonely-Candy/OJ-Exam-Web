@@ -49,11 +49,11 @@
             <div class="col-4 text-center">
                 <a class="blog-header-logo text-dark" href="#">ACM Online Judge</a>
             </div>
-            <div th:if="${#session.getAttribute('loginUserData') == null}"
+            <div th:if="${session.loginUserData eq null}"
                  class="col-4 d-flex justify-content-end align-items-center">
                 <a class="btn btn-sm btn-outline-secondary" th:href="@{/login.html}">登 录</a>
             </div>
-            <div th:if="${#session.getAttribute('loginUserData') != null}"
+            <div th:if="${session.loginUserData ne null}"
                  class="col-4 d-flex justify-content-end align-items-center">
                 <div style="margin-right: 5px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -62,7 +62,7 @@
                         <path fill-rule="evenodd"
                               d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
                     </svg>
-                    [[${#session.getAttribute("isAdmin") ? #session.getAttribute("loginUserData").getAdminid() : #session.getAttribute("loginUserData").getUserid()}]]
+                    [[${session.isAdmin ? session.loginUserData.adminid : session.loginUserData.userid}]]
                 </div>
                 <a class="btn btn-sm btn-outline-secondary" th:href="@{/logout}">退 出</a>
             </div>
@@ -75,7 +75,7 @@
             <p class="lead my-3">为学生和老师提供程序设计考试服务</p>
         </div>
         <div>
-            <a th:href="@{exam/examlist.html}" class="btn btn-primary btn-lg">进入平台</a>
+            <a th:href="@{/main.html}" class="btn btn-primary btn-lg">进入平台</a>
         </div>
     </div>
     <div class="row mb-2">

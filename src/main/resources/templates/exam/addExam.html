@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>添加考试</title>
     <!-- Bootstrap core CSS -->
-    <link th:href="@{/webjars/bootstrap/4.6.1/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+
     <style>
         .bd-placeholder-img {
             font-size: 1.125rem;
@@ -31,42 +32,40 @@
     <!-- Custom styles for this template -->
     <link th:href="@{/css/dashboard.css}" rel="stylesheet">
     <link th:href="@{/css/daterangepicker.min.css}" rel="stylesheet"/>
+    <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
 </head>
 <body>
-<!-- 引入头部导航栏 -->
-<div th:replace="navigation/topNav :: topNav"></div>
 
-<div class="container-fluid">
+<div class="container">
     <div class="row">
-        <!-- 引入左侧导航栏 -->
-        <div th:replace="~{navigation/leftNav :: leftNav(true, 'examlist')}"></div>
         <!-- 添加考试表单 -->
-        <main style="margin-top: 10px" role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-            <!-- 面包屑导航-->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a th:href="@{/exam/examlist.html}">考试列表</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">添加考试</li>
-                </ol>
-            </nav>
-            <form>
+        <main style="margin-top: 10px" role="main" class="col align-self-center">
+            <form th:action="${exam != null ? '/editExam':'/addExam'}" method="post">
+                <input type="hidden" th:value="${exam != null ? exam.id : ''}">
                 <div class="form-group">
                     <label for="exampleInputTitle">考试标题</label>
-                    <input type="text" class="form-control" id="exampleInputTitle">
+                    <input th:value="${exam != null ? exam.title : ''}" name="title" type="text" class="form-control"
+                           id="exampleInputTitle">
                 </div>
                 <div class="form-group">
                     <label for="exampleInputTime">考试时间</label>
-                    <input id="exampleInputTime" class="form-control" name="datetimes" type="text">
+                    <input th:value="${exam != null ? exam.beginTime + ' - ' + exam.endTime : ''}" id="exampleInputTime"
+                           class="form-control" name="datetimes" type="text">
                 </div>
                 <div class="form-group">
                     <label for="exampleInputLength">考试时长（分钟）</label>
-                    <input type="text" class="form-control" id="exampleInputLength">
+                    <input th:value="${exam != null ? exam.length : ''}" name="length" type="text" class="form-control"
+                           id="exampleInputLength">
                 </div>
                 <div class="form-group form-check">
-                    <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                    <input th:value="${exam != null ? exam.isCheck : ''}" name="isCheck" type="checkbox"
+                           class="form-check-input" id="exampleCheck1">
                     <label class="form-check-label" for="exampleCheck1">是否开启监控</label>
                 </div>
-                <button type="submit" class="btn btn-primary">添加考试</button>
+                <div th:if="${message != null}" class="alert alert-danger" role="alert">
+                    [[${message}]]
+                </div>
+                <button type="submit" class="btn btn-primary">[[${exam != null ? '修改' : '添加考试'}]]</button>
             </form>
         </main>
     </div>
@@ -100,16 +99,16 @@
             timePicker: true,
             timePickerSeconds: false,
             timePicker24Hour: true,
-            startDate: moment().startOf('hour'), endDate: moment().startOf('hour').add(32, 'hour'),
-            locale: {format: 'YYYY-MM-DD HH:mm:ss'}
-
+            locale: {
+                format: 'YYYY-MM-DD HH:mm:ss',
+            }
         }, function (start, end, label) {
+            // 回调函数-自动计算出时间长度（单位：分钟）
             var res = getTimeDifference(new Date(start.format('YYYY-MM-DD HH:mm:ss'))
                 , new Date(end.format('YYYY-MM-DD HH:mm:ss')));
             $('#exampleInputLength').val(res)
         });
     });
-
 </script>
 </body>
 </html>

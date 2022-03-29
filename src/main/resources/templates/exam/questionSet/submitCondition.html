@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>提交情况</title>
+    <link rel="icon" th:href="@{/favicon.ico}">
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        .dropdown-submenu {
+            position: relative;
+        }
+
+        .dropdown-submenu a::after {
+            transform: rotate(-90deg);
+            position: absolute;
+            right: 6px;
+            top: .8em;
+        }
+
+        .dropdown-submenu .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-left: .1rem;
+            margin-right: .1rem;
+        }
+
+        .icon-demo .bi, .icon-demo-examples .bi {
+            width: 1em;
+            height: 1em;
+        }
+
+        .bi {
+            display: inline-block;
+            vertical-align: -0.125em;
+        }
+    </style>
+
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/codemirror/codemirror.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/codemirror/ambiance.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <!-- 详细内容展示 -->
+        <main style="margin-top: 10px" role="main" class="col align-self-center">
+            <!-- 引入考试相关导航 -->
+            <div th:replace="~{navigation/examNav :: examNav('submitCondition')}"></div>
+            <!-- 学生提交 -->
+            <div style="margin-top: 20px">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">提交时间</th>
+                        <th scope="col">状态</th>
+                        <th scope="col">分数</th>
+                        <th scope="col">题目</th>
+                        <th scope="col">编译器</th>
+                        <th scope="col">耗时</th>
+                        <th scope="col">用户</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <th scope="row">2022-03-11 16:00:00</th>
+                        <td>
+                            <span class="label label-info">答案正确</span>
+                        </td>
+                        <td>
+                            <a data-toggle="modal" data-target="#showScore" type="button">10</a>
+                        </td>
+                        <td>L1-1</td>
+                        <td>C++</td>
+                        <td>86 ms</td>
+                        <td>20180865114</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">2022-03-11 16:00:00</th>
+                        <td>
+                            <span class="label label-warning">部分正确</span>
+                        </td>
+                        <td>
+                            <a href="#">5</a>
+                        </td>
+                        <td>L1-2</td>
+                        <td>C++</td>
+                        <td>86 ms</td>
+                        <td>20180865114</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">2022-03-11 16:00:00</th>
+                        <td>
+                            <span class="label label-success">编译错误</span>
+                        </td>
+                        <td>
+                            <a href="#">0</a>
+                        </td>
+                        <td>L1-3</td>
+                        <td>C++</td>
+                        <td>86 ms</td>
+                        <td>20180865114</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">2022-03-11 16:00:00</th>
+                        <td>
+                            <span class="label label-danger">答案错误</span>
+                        </td>
+                        <td>
+                            <a href="#">0</a>
+                        </td>
+                        <td>L1-4</td>
+                        <td>C++</td>
+                        <td>86 ms</td>
+                        <td>20180865114</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">2022-03-11 16:00:00</th>
+                        <td>
+                            <span class="label label-primary">运行超时</span>
+                        </td>
+                        <td>
+                            <a href="#">0</a>
+                        </td>
+                        <td>L1-4</td>
+                        <td>C++</td>
+                        <td>86 ms</td>
+                        <td>20180865114</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- 详细分数模态框 -->
+        <div class="modal inmodal fade" id="showScore" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                                class="sr-only">Close</span></button>
+                        <h4 class="modal-title">提交结果</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>提交时间</th>
+                                <th>状态</th>
+                                <th>分数</th>
+                                <th>题目</th>
+                                <th>编译器</th>
+                                <th>耗时</th>
+                                <th>用户</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>2022-03-11 16:00:00</td>
+                                <td>
+                                    <sapn class="label label-info">答案正确</sapn>
+                                </td>
+                                <td>10</td>
+                                <td>P-1</td>
+                                <td>C++</td>
+                                <td>86 ms</td>
+                                <td>20180865114 范颂扬</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <hr>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>测试点</th>
+                                <th>结果</th>
+                                <th>分数</th>
+                                <th>耗时</th>
+                                <th>内存</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td>
+                                    <sapn class="label label-info">答案正确</sapn>
+                                </td>
+                                <td>5</td>
+                                <td>86 ms</td>
+                                <td>15032 KB</td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <sapn class="label label-info">答案正确</sapn>
+                                </td>
+                                <td>5</td>
+                                <td>86 ms</td>
+                                <td>15032 KB</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <sapn class="label label-info">答案正确</sapn>
+                                </td>
+                                <td>5</td>
+                                <td>86 ms</td>
+                                <td>15032 KB</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div class="row">
+                            <div class="col-md-1">
+                                <h4>代码</h4>
+                            </div>
+                            <div class="col-md-11">
+                                <textarea id="code2">
+var SpeechApp = angular.module('SpeechApp', []);
+
+function VoiceCtrl($scope) {
+
+    $scope.said='...';
+
+    $scope.helloWorld = function() {
+        $scope.said = "Hello world!";
+    }
+
+    $scope.commands = {
+        'hello (world)': function() {
+            if (typeof console !== "undefined") console.log('hello world!')
+            $scope.$apply($scope.helloWorld);
+        },
+        'hey': function() {
+            if (typeof console !== "undefined") console.log('hey!')
+            $scope.$apply($scope.helloWorld);
+        }
+    };
+
+    annyang.debug();
+    annyang.init($scope.commands);
+    annyang.start();
+}
+                                </textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
+<script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
+
+<!-- Peity -->
+<script th:src="@{/hAdmin/js/plugins/peity/jquery.peity.min.js}"></script>
+
+<!-- CodeMirror -->
+<script th:src="@{/hAdmin/js/plugins/codemirror/codemirror.js}"></script>
+<script th:src="@{/hAdmin/js/plugins/codemirror/mode/javascript/javascript.js}"></script>
+
+<!-- 自定义js -->
+<script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
+
+<script>
+    $('#showScore').on('shown.bs.modal', (function () {
+        var editor_two = CodeMirror.fromTextArea(document.getElementById("code2"), {
+            lineNumbers: true,
+            matchBrackets: true,
+            styleActiveLine: true
+        });
+        editor_two.refresh();
+    }))
+</script>
+</body>
+</html>
