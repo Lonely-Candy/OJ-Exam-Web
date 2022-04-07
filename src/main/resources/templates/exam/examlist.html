@@ -78,14 +78,17 @@
                                             <dd>[[${exam.isCheck == 1 ? '是' : '否'}]]</dd>
                                             <dd>
                                                 <a th:if="${!#session.getAttribute('isAdmin') && exam.flag == 1}"
-                                                   type="button" class="btn btn-success" th:href="@{/exam/questionSet/problemlist.html}">
+                                                   type="button" class="btn btn-success"
+                                                   th:href="@{/exam/questionSet/problemlist.html}">
                                                     <em class="glyphicon glyphicon-align-left"></em> 开始考试
                                                 </a>
-                                                <a disabled="disabled" th:if="${!#session.getAttribute('isAdmin') && exam.flag != 1}"
+                                                <a disabled="disabled"
+                                                   th:if="${!#session.getAttribute('isAdmin') && exam.flag != 1}"
                                                    type="button" class="btn btn-success">
                                                     <em class="glyphicon glyphicon-align-left"></em> 开始考试
                                                 </a>
-                                                <a th:if="${#session.getAttribute('isAdmin')}"
+                                                <a th:href="@{/exam/questionSet/problemlist.html}"
+                                                   th:if="${#session.getAttribute('isAdmin')}"
                                                    class="btn btn-primary" type="button">
                                                     <em class="glyphicon glyphicon-align-left"></em> 编辑考试
                                                 </a>

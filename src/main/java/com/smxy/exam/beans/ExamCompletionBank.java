@@ -31,6 +31,11 @@ public class ExamCompletionBank implements Serializable {
     private Integer id;
 
     /**
+     * 标题
+     */
+    private String title;
+
+    /**
      * 题干
      */
     private String content;

@@ -1,7 +1,5 @@
 package com.smxy.exam.controller;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.smxy.exam.beans.Admin;
 import com.smxy.exam.beans.Exam;
 import com.smxy.exam.service.impl.ExamServiceImpl;

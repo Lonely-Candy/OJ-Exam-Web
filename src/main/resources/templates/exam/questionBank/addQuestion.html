@@ -9,6 +9,8 @@
     <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
     <link rel="stylesheet" type="text/css" th:href="@{/hAdmin/css/plugins/simditor/simditor.css}"/>
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <!-- Sweet Alert -->
+    <link th:href="@{/hAdmin/css/plugins/sweetalert/sweetalert.css}" rel="stylesheet">
 
     <style>
         .simditor-toolbar {
@@ -47,7 +49,8 @@
                             </div>
                             <div class="ibox-content">
                                 <!-- 题目标题 -->
-                                <input placeholder="填写标题，可略，不填写将显示部分题目" type="text" class="form-control">
+                                <input id="title_completion" placeholder="填写标题，可略，不填写将显示部分题目" type="text"
+                                       class="form-control">
                             </div>
                         </div>
                     </div>
@@ -97,7 +100,8 @@
                 <!-- 提交按钮 -->
                 <div class="row">
                     <div class="col-sm-12">
-                        <button type="button" class="btn btn-success pull-right">添加</button>
+                        <button onclick="submit('completion')" type="button" class="btn btn-success pull-right">添加
+                        </button>
                     </div>
                 </div>
             </div>
@@ -163,19 +167,28 @@
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
-
 <!-- 自定义js -->
 <script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
-
 <!-- simditor -->
 <script type="text/javascript" th:src="@{/hAdmin/js/plugins/simditor/module.js}"></script>
 <script type="text/javascript" th:src="@{/hAdmin/js/plugins/simditor/uploader.js}"></script>
 <script type="text/javascript" th:src="@{/hAdmin/js/plugins/simditor/hotkeys.js}"></script>
 <script type="text/javascript" th:src="@{/hAdmin/js/plugins/simditor/simditor.js}"></script>
+<!-- Sweet alert -->
+<script th:src="@{/hAdmin/js/plugins/sweetalert/sweetalert.min.js}"></script>
 <script>
+    // 填空题文本编辑器
     var editor_completion;
+    // 程序填空题文本编辑器
     var editor_programme;
+    // 填空题对应的内容
+    var completion_value;
+    // 填空题对应的填空答案
+    var completion_uElements;
 
+    /**
+     * 页面加载完毕后，创建文本编辑器
+     */
     $(document).ready(function () {
         /* 填空题文本编辑 */
         editor_completion = new Simditor({
@@ -187,27 +200,30 @@
         });
     });
 
-
+    /**
+     * 点击 保存/修改 按钮后点击方法
+     * 自动识别下划线为填空部分
+     * @param type 区分填空和编程填空标记
+     */
     var preview = function (type) {
         /* 填空题 */
-        if(type == "completion") {
+        if (type == "completion") {
             if (editor_completion != null) {
                 /* 填空题保存 */
-                var value = editor_completion.getValue();
+                completion_value = editor_completion.getValue();
                 editor_completion.destroy();
                 editor_completion = null;
-                $('#completion_text').html(value);
+                $('#completion_text').html(completion_value);
                 $('#save').text('修改');
-
                 /* 自动生成填空分值设置 */
-                var uElements = $(value).find('u');
+                completion_uElements = $(completion_value).find('u');
                 var score_completions_html = "";
-                for (var i = 0; i < uElements.length; i++) {
+                for (var i = 0; i < completion_uElements.length; i++) {
                     score_completions_html += '<div class="col-sm-4"><div class="panel panel-primary">';
                     score_completions_html += '<div class="panel-heading">填空 ' + (i + 1) + '</div>';
                     score_completions_html += '<div class="panel-body"><div class="col-md-8">' +
-                        '<input type="text" value="'+ $(uElements[i]).text() +'" disabled id="content_' + (i + 1) + '" class="form-control"></div>' +
-                        '<div class="col-md-4"><input type="text" id="score_"' + (i + 1) + ' class="score_style form-control"> 分</div></div></div></div>';
+                        '<input type="text" value="' + $(completion_uElements[i]).text() + '" disabled id="content_' + (i + 1) + '" class="form-control"></div>' +
+                        '<div class="col-md-4"><input type="text" id="score_' + (i + 1) + '" class="score_style form-control"> 分</div></div></div></div>';
                 }
                 $("#score_completions").html(score_completions_html);
             } else {
@@ -219,6 +235,8 @@
                 })
                 $('#save').text('保存');
                 $('#score_completions').html('');
+                completion_uElements = null;
+                completion_value = null;
             }
         }
         /* 编程填空题 */
@@ -231,6 +249,60 @@
         //     }
         // });
     };
+
+    /**
+     * 点击 添加 按钮后点击方法
+     * @param type 区分填空和编程填空标记
+     */
+    var submit = function (type) {
+        if (type == 'completion' && completion_uElements != null
+                && completion_value != null) {
+            /* 类型：填空 */
+            /* 获取题目参数 */
+            // 1. 题目标题
+            var title = $('#title_completion').val();
+            // 获取填空数
+            var completionNum = completion_uElements.length;
+            // 2. 填空对应答案
+            var answers = new Array(completionNum);
+            // 获取填空答案
+            for (var i = 0; i < completionNum; i++) {
+                answers[i] = new String($(completion_uElements[i]).text());
+            }
+            // 3. 填空对应分数
+            var scores = new Array(completion_uElements.length);
+            // 获取填空分数
+            for (var i = 0; i < completion_uElements.length; i++) {
+                scores[i] = parseInt($('#score_' + (i + 1)).val());
+            }
+            // 4. 发送请求
+            $.post("/addCompletion", {
+                "title": title,
+                "contentHtml": completion_value,
+                "scores": scores.toString(),
+                "answers": answers.toString()
+            }, function (data, status) {
+                if(status == 'success') {
+                    if(data.code == 777) {
+                        swal({
+                            title: "添加成功",
+                            type: "success"
+                        }, function () {
+                            history.go(0);
+                        });
+                    } else {
+                        if(data.code == 666) {
+                            swal({
+                                title: "添加失败",
+                                text: "数据库添加失败",
+                                type: "warning",
+                            });
+                        }
+                    }
+                }
+            })
+        }
+    }
 </script>
 </body>
 </html>

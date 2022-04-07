@@ -3,20 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>填空题题库</title>
-    <!-- Bootstrap core CSS -->
     <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
     <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <!-- Sweet Alert -->
+    <link th:href="@{/hAdmin/css/plugins/sweetalert/sweetalert.css}" rel="stylesheet">
+
+    <style>
+        .input-answer {
+            max-width: none;
+            width: 15ch;
+            max-height: 500px;
+            display: inline-flex !important;
+        }
+
+        .input-answer-addon {
+            min-width: 60px;
+            align-items: center;
+            text-align: center;
+            background-color: #e1e7ee !important;
+        }
+    </style>
 </head>
 <body class="gray-bg">
 
 <div class="wrapper wrapper-content animated fadeInUp">
     <div class="row">
         <div class="col-sm-12">
-
             <div class="ibox">
                 <div class="ibox-title">
                     <h5>填空题集</h5>
@@ -26,9 +40,12 @@
                     <div class="row m-b-sm m-t-sm">
                         <div class="col-md-12">
                             <div class="input-group">
-                                <input type="text" placeholder="请输入题目信息" class="input-sm form-control"> <span
-                                    class="input-group-btn">
-                                        <button type="button" class="btn btn-sm btn-primary"> 搜索</button> </span>
+                                <input th:value="${keyword}" id="keyword_input" type="text" placeholder="请输入题目信息"
+                                       class="input-sm form-control">
+                                <span class="input-group-btn">
+                                    <button onclick="queryProblem()" type="button"
+                                            class="btn btn-sm btn-primary"> 搜索</button>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -36,38 +53,103 @@
                     <div class="project-list">
                         <table class="table table-hover">
                             <tbody>
-                            <tr>
+                            <tr th:each="problem, problemStat:${problemData.getRecords()}">
                                 <td class="project-status">
-                                    <span class="label label-primary">01</span>
+                                    <span class="label label-primary">[[${problemStat.count}]]</span>
                                 </td>
                                 <td class="project-title">
-                                    <a href="project_detail.html">python中，使用号表示单行注释。</a>
+                                    <a th:onclick="'showProblem(' + ${problem.id} + ')'">[[${problem.title}]]</a>
                                     <br/>
-                                    <small>smfsy 创建于 2014.08.15</small>
+                                    <small>
+                                        [[${problem.adminid}]] 创建于 [[${problem.time.toString.replace('T', ' ')}]]
+                                    </small>
                                 </td>
                                 <td class="project-actions">
-                                    <a href="#" class="btn btn-danger btn-sm">
-                                        <i class="fa fa-remove"></i> 删除 </a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="project-status">
-                                    <span class="label label-primary">02</span>
-                                </td>
-                                <td class="project-title">
-                                    <a href="project_detail.html">python中，使用号表示单行注释。</a>
-                                    <br/>
-                                    <small>smfsy 创建于 2014.08.15</small>
-                                </td>
-                                <td class="project-actions">
-                                    <a href="#" class="btn btn-danger btn-sm">
-                                        <i class="fa fa-remove"></i> 删除 </a>
+                                    <a th:onclick="'delProblem(' + ${problem.id} + ')'" class="btn btn-danger btn-sm">
+                                        <i class="fa fa-remove"></i> 删除
+                                    </a>
                                 </td>
                             </tr>
                             </tbody>
                         </table>
                     </div>
+                    <!-- 分页 -->
+                    <div class="form-inline row justify-content-md-center text-center">
+                        <div class="form-group mx-sm-3 mb-2">
+                            <span>当前一共有 [[${problemData.getPages()}]] 页，共 [[${problemData.getTotal()}]] 道题</span>
+                            <!-- 分页条 -->
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-center">
+                                    <li th:class="${problemData.hasPrevious() ? 'page-item' : 'page-item disabled'}">
+                                        <a class="page-link"
+                                           th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 1}}"
+                                           aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <li th:if="${problemData.getCurrent() - 2 > 0}" class="page-item">
+                                        <a class="page-link"
+                                           th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 2}}">
+                                            [[problemData.getCurrent() - 2]]
+                                        </a>
+                                    </li>
+                                    <li th:if="${problemData.hasPrevious()}" class="page-item">
+                                        <a class="page-link"
+                                           th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 1}}">
+                                            [[${problemData.getCurrent() - 1}]]</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <a class="page-link" href="#">[[${problemData.getCurrent()}]]</a>
+                                    </li>
+                                    <li th:if="${problemData.hasNext()}" class="page-item">
+                                        <a class="page-link"
+                                           th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 1}}">
+                                            [[${problemData.getCurrent() + 1}]]
+                                        </a>
+                                    </li>
+                                    <li th:if="${problemData.getCurrent() + 2 <= problemData.getPages()}"
+                                        class="page-item">
+                                        <a class="page-link"
+                                           th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 2}}">
+                                            [[problemData.getCurrent() + 2]]
+                                        </a>
+                                    </li>
+                                    <li th:class="${problemData.hasNext() ? 'page-item' : 'page-item disabled'}">
+                                        <a class="page-link"
+                                           th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 2}}"
+                                           aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 显示题目模态框 -->
+<div th:if="${#session.getAttribute('isAdmin')}" class="modal inmodal" id="showProblemModal" tabindex="-1"
+     role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated fadeIn">
+            <div class="modal-header">
+                <input type="hidden" id="pro_id">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 id="pro_title" class="modal-title"></h4>
+                <small id="pro_explain" class="font-bold"></small>
+            </div>
+            <div class="modal-body">
+                <div class="problem-content">
+                    <div class="lead" id="pro_context"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal">取消</button>
+                <button onclick="editProblem()" type="button" class="btn btn-primary">修改</button>
             </div>
         </div>
     </div>
@@ -76,8 +158,129 @@
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
-
 <!-- 自定义js -->
 <script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
+<!-- Sweet alert -->
+<script th:src="@{/hAdmin/js/plugins/sweetalert/sweetalert.min.js}"></script>
+<script>
+    /**
+     * 显示题目详细信息
+     * @param proId 题目ID
+     */
+    const showProblem = function (proId) {
+        $.get("/getCompletion/" + proId, function (data, status) {
+            if (status == "success") {
+                console.log(data.data);
+                if (data.code == 777) {
+                    let resultData = data.data;
+                    $("#pro_id").attr("value", resultData.id);
+                    $("#pro_title").text("填空题-" + resultData.id + " (" + resultData.totalPoints + "分)");
+                    $("#pro_explain").text(resultData.adminid + " 创建于 " + resultData.time);
+                    $("#pro_context").html(resultData.replaceContext)
+                        .attr("blankSum", resultData.blankSum);
+                    $("#showProblemModal").modal('show');
+                }
+            }
+        });
+    };
+    /**
+     * 修改题目
+     */
+    const editProblem = function () {
+        let proId = $("#pro_id").attr("value");
+        let blankSum = $("#pro_context").attr("blankSum");
+        let answer = "";
+        for (let i = 0; i < blankSum - 1; i++) {
+            let inputTagValue = $("#input_answer_" + i).find('input').val();
+            answer += inputTagValue + "#";
+        }
+        answer += $("#input_answer_" + (blankSum - 1)).find("input").val();
+        $.post("/editCompletion/" + proId, {'answer': answer}, function (data, status) {
+            if (status == "success") {
+                if (data.code == 777) {
+                    $("#showProblemModal").modal('toggle');
+                    swal({title: "修改成功", type: "success"});
+                }
+            }
+        })
+    };
+    /**
+     * 删除题目
+     * @param proId 题目ID
+     */
+    const delProblem = function (proId) {
+        swal({
+                title: "您确定要删除该题目吗",
+                text: "删除后将无法恢复，请谨慎操作！",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "是的，我要删除！",
+                cancelButtonText: "让我再考虑一下…",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.get("/deleteCompletion/" + proId, function (data, status) {
+                        if (status == "success") {
+                            if (data.code == 777) {
+                                swal("删除成功！", "您已经永久删除了该题目。", "success");
+                                history.go(0);
+                            } else {
+                                swal("删除失败", "数据库操作错误，删除失败", "error");
+                            }
+                        } else {
+                            swal("删除失败", "服务器请求失败！", "error");
+                        }
+                    });
+                } else {
+                    swal("已取消", "您取消了删除操作！", "error");
+                }
+            });
+    };
+    /**
+     * 查询题目
+     */
+    const queryProblem = function () {
+        let keyword = $("#keyword_input").val();
+        // 创建表单
+        let htmlFormElement = document.createElement("form");
+        htmlFormElement.action = "/findCompletion";
+        htmlFormElement.method = "post";
+        // 不显示表单
+        htmlFormElement.style.display = "none";
+        // 返回当前页面中，若如需打开新窗口，form 的 target 属性要设置为'_blank'
+        htmlFormElement.target = "_self";
+        // 添加参数
+        let opt = document.createElement("input");
+        opt.name = "keyword";
+        opt.value = keyword;
+        htmlFormElement.appendChild(opt);
+        $(document.body).append(htmlFormElement);
+        // 提交表单
+        htmlFormElement.submit();
+    };
+    /**
+     * input回车监听
+     * @param e
+     */
+    $('#keyword_input').bind('keydown', function (event) {
+        // 回车事件
+        if (event.keyCode == 13) {
+            queryProblem();
+        }
+    })
+    /**
+     * input监听输入
+     */
+    $("#keyword_input").on('input', function (e) {
+        let content = $("#keyword_input").val();
+        console.log(content);
+        if (content == "" || content == null) {
+            queryProblem();
+        }
+    });
+</script>
 </body>
 </html>

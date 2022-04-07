@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <title>排名</title>
     <link rel="icon" th:href="@{/favicon.ico}">
-    <!-- Bootstrap core CSS -->
-    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
 
     <style>
         .bd-placeholder-img {
@@ -50,10 +48,37 @@
             display: inline-block;
             vertical-align: -0.125em;
         }
-    </style>
 
-    <!-- Custom styles for this template -->
-    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+        .inline-style {
+            display: inline-flex;
+        }
+
+        .input-answer {
+            max-width: none;
+            width: 19.2ch;
+            max-height: 500px;
+            display: inline-flex !important;
+        }
+
+        .input-answer-addon {
+            min-width: 60px;
+            align-items: center;
+            text-align: center;
+            background-color: #e1e7ee !important;
+        }
+
+        .score_style {
+            width: 65px !important;
+            display: initial !important;
+        }
+
+        label {
+            margin: auto;
+        }
+    </style>
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
 </head>
 <body>
@@ -116,7 +141,7 @@
                         <td>8</td>
                         <td>2721</td>
                         <td>
-                            <a href="#">5</a>
+                            <a type="button" data-toggle="modal" data-target="#showProblemModal">5</a>
                         </td>
                         <td>
                             <a href="#">5</a>
@@ -179,10 +204,64 @@
             </div>
         </main>
     </div>
+
+    <!-- 显示题目模态框 -->
+    <div th:if="${#session.getAttribute('isAdmin')}" class="modal inmodal" id="showProblemModal" tabindex="-1"
+         role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content animated flipInY">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">L1-1</h4>
+                    <small class="font-bold">用户：20180865114 范颂扬</small>
+                </div>
+                <div class="modal-body">
+                    <div class="problem-content">
+                        <div>
+                            Java把数据类型分为
+                            <div class="input-answer input-group m-b">
+                                <input disabled value="数据类型" type="text" class="form-control"> <span
+                                    class="input-answer-addon input-group-addon">2 分</span>
+                            </div>
+                            和
+                            <div class="input-answer input-group m-b">
+                                <input disabled value="引用类型" type="text" class="form-control"> <span
+                                    class="input-answer-addon input-group-addon">2 分</span>
+                            </div>
+                            。
+                        </div>
+                        <hr>
+                        <div>
+                            <div class="inline-style">
+                                <label>得分：</label>
+                                <input value="5" type="text" class="score_style form-control">
+                                <label>&emsp;分</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script th:src="@{/webjars/jquery/3.5.1/jquery.slim.min.js}"></script>
-<script th:src="@{/webjars/popper.js/1.16.0/umd/popper.min.js}"></script>
-<script th:src="@{/webjars/bootstrap/4.6.1/js/bootstrap.min.js}"></script>
+<!-- 全局js -->
+<script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
+<script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
+
+<script th:src="@{/hAdmin/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
+
+<script>
+    $(function () {
+        $('.full-height-scroll').slimScroll({
+            height: '100%'
+        });
+    });
+</script>
 </body>
 </html>
