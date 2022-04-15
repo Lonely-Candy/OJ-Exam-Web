@@ -13,11 +13,18 @@
     <link th:href="@{/highlight/default.min.css}" rel="stylesheet">
 
     <style>
+        .problem_text {
+            font-family: 'Harmony', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";;
+            font-size: 1.5rem;
+            font-weight: 400;
+        }
+
         .input-answer {
             max-width: none;
-            width: 15ch;
+            width: 150px;
             max-height: 500px;
             display: inline-flex !important;
+            margin: 0;
         }
 
         .input-answer-addon {
@@ -48,7 +55,7 @@
         <div class="col-sm-12">
             <div class="ibox">
                 <div class="ibox-title">
-                    <h5>填空题集</h5>
+                    <h5>编程填空题集</h5>
                 </div>
                 <div class="ibox-content">
                     <!-- 搜索框 -->
@@ -80,7 +87,8 @@
                                     </small>
                                 </td>
                                 <td class="project-actions">
-                                    <a th:href="@{'/toEditPage/' + ${problem.id}}" class="btn btn-success btn-sm">
+                                    <a th:href="@{'/toEditPage/' + ${problem.id}} + '?type=programme'"
+                                       class="btn btn-success btn-sm">
                                         <i class="fa fa-edit"></i> 编辑 </a>
                                     <a th:onclick="'delProblem(' + ${problem.id} + ')'"
                                        class="btn btn-danger btn-sm">
@@ -147,6 +155,7 @@
         </div>
     </div>
 </div>
+
 <!-- 显示题目模态框 -->
 <div th:if="${#session.getAttribute('isAdmin')}" class="modal inmodal" id="showProblemModal" tabindex="-1"
      role="dialog" aria-hidden="true">
@@ -161,7 +170,9 @@
             </div>
             <div class="modal-body">
                 <div class="problem-content">
-                    <div class="lead" id="pro_context"></div>
+                    <div class="problem_text" id="pro_context"></div>
+                    <hr>
+                    <div class="problem_text" id="pro_test_data"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -185,13 +196,13 @@
      * @param proId 题目ID
      */
     const showProblem = function (proId) {
-        $.get("/getCompletion/" + proId, function (data, status) {
+        $.get("/getProblem/" + proId + "?type=programme", function (data, status) {
             if (status == "success") {
                 console.log(data.data);
                 if (data.code == 777) {
                     let resultData = data.data;
                     $("#pro_id").attr("value", resultData.id);
-                    $("#pro_title").text("填空题-" + resultData.id + " (" + resultData.totalPoints + "分)");
+                    $("#pro_title").text("填空题");
                     $("#pro_explain").text(resultData.adminid + " 创建于 " + resultData.time);
                     $("#pro_context").html(resultData.replaceContext)
                         .attr("blankSum", resultData.blankSum);
@@ -212,7 +223,7 @@
             answer += inputTagValue + "#";
         }
         answer += $("#input_answer_" + (blankSum - 1)).find("input").val();
-        $.post("/editCompletion/" + proId, {'answer': answer}, function (data, status) {
+        $.post("/editProblem/" + proId, {'answer': answer}, function (data, status) {
             if (status == "success") {
                 if (data.code == 777) {
                     $("#showProblemModal").modal('toggle');
@@ -227,34 +238,32 @@
      */
     const delProblem = function (proId) {
         swal({
-                title: "您确定要删除该题目吗",
-                text: "删除后将无法恢复，请谨慎操作！",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "是的，我要删除！",
-                cancelButtonText: "让我再考虑一下…",
-                closeOnConfirm: false,
-                closeOnCancel: false
-            },
-            function (isConfirm) {
-                if (isConfirm) {
-                    $.get("/deleteCompletion/" + proId, function (data, status) {
-                        if (status == "success") {
-                            if (data.code == 777) {
-                                swal("删除成功！", "您已经永久删除了该题目。", "success");
+            title: "您确定要删除该题目吗",
+            text: "删除后将无法恢复，请谨慎操作！",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "是的，我要删除！",
+            cancelButtonText: "让我再考虑一下…",
+            closeOnConfirm: false,
+            closeOnCancel: false
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.get("/deleteProblem/" + proId + "?type=programme", function (data, status) {
+                    if (status == "success") {
+                        if (data.code == 777) {
+                            swal("删除成功！", "您已经永久删除了该题目。", "success", function () {
                                 history.go(0);
-                            } else {
-                                swal("删除失败", "数据库操作错误，删除失败", "error");
-                            }
+                            });
                         } else {
-                            swal("删除失败", "服务器请求失败！", "error");
+                            swal("删除失败", "数据库操作错误，删除失败", "error");
                         }
-                    });
-                } else {
-                    swal("已取消", "您取消了删除操作！", "error");
-                }
-            });
+                    } else {
+                        swal("删除失败", "服务器请求失败！", "error");
+                    }
+                });
+            }
+        });
     };
     /**
      * 查询题目

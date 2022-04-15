@@ -3,6 +3,7 @@ package com.smxy.exam.beans;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -13,7 +14,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author fsy
@@ -71,6 +72,24 @@ public class ExamProcedureBank implements Serializable {
      * 创建时间
      */
     private LocalDateTime time;
+
+    /**
+     * 判断是否包含该编译器
+     *
+     * @param compile 待判断的编译器
+     * @return boolean
+     * @author 范颂扬
+     * @date 2022-04-12 15:17
+     */
+    public boolean isExistCompile(String compile) {
+        String[] compiles = this.compile.split("#");
+        for (int i = 0; i < compiles.length; i++) {
+            if (compiles[i].equals(compile)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 
 }

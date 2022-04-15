@@ -14,7 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @create 2022-02-14 14:16
  */
 @Configuration
-public class MyMvcConfig implements WebMvcConfigurer {
+public class MyMvcConfig {
 
     /**
      * 添加一个配置类

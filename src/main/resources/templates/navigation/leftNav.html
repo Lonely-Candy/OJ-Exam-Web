@@ -49,10 +49,12 @@
                 </a>
                 <ul class="nav nav-second-level">
                     <li>
-                        <a th:href="@{/getAllCompletion/1}" class="J_menuItem">填空题集</a>
+                        <a th:href="@{'/getAllProblem/1?type=completion'}"
+                           class="J_menuItem">填空题集</a>
                     </li>
                     <li>
-                        <a th:href="@{/exam/questionBank/procedureBank.html}" class="J_menuItem">编程填空题集</a>
+                        <a th:href="@{'/getAllProblem/1?type=programme'}"
+                           class="J_menuItem">编程填空题集</a>
                     </li>
                     <li>
                         <a th:href="@{/exam/questionBank/addQuestion.html}" class="J_menuItem">添加题目</a>

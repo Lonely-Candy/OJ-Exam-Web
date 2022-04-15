@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
  * @author 范颂扬
  * @create 2022-04-05 18:16
  */
-public class CompletionBankControllerTest {
+public class ProblemBankControllerTest {
 
     /**
      * 测试填空题html内容替换
