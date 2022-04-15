@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.smxy.exam.beans.Admin;
 import com.smxy.exam.beans.ExamCompletionBank;
+import com.smxy.exam.beans.ExamProcedureBank;
 import com.smxy.exam.beans.ResultData;
 import com.smxy.exam.service.IExamCompletionBankService;
+import com.smxy.exam.service.IExamProcedureBankService;
 import com.smxy.exam.util.ResultDataUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.regex.Matcher;
 
 
 /**
@@ -35,51 +38,52 @@ public class CompletionBankController {
 
     private IExamCompletionBankService examCompletionBankService;
 
+    private IExamProcedureBankService examProcedureBankService;
+
     @Autowired
-    public CompletionBankController(IExamCompletionBankService examCompletionBankService) {
+    public CompletionBankController(IExamCompletionBankService examCompletionBankService
+            , IExamProcedureBankService examProcedureBankService) {
         this.examCompletionBankService = examCompletionBankService;
+        this.examProcedureBankService = examProcedureBankService;
     }
 
     /**
-     * 添加填空题到题库中
+     * 添加填空题和编程填空题到题库中
      *
-     * @param answers     答案
+     * @param answerStr   答案
      * @param title       题目
      * @param contentHtml 题干
-     * @param scores      分数
+     * @param scoreStr    分数
+     * @param type        添加题目的类型
      * @return com.smxy.exam.beans.ResultData
      * @author 范颂扬
      * @date 2022-03-29 17:59
      */
     @ResponseBody
-    @PostMapping("/addCompletion")
-    public ResultData addCompletionProblemToBank(@RequestParam("answers") String[] answers
-            , @RequestParam(value = "title", required = false, defaultValue = "") String title
-            , @RequestParam("contentHtml") String contentHtml, @RequestParam("scores") String[] scores
+    @PostMapping("/addProblem")
+    public ResultData addCompletionProblemToBank(@RequestParam(value = "id", required = false) Integer id
+            , @RequestParam("answers") String answerStr, @RequestParam("scores") String scoreStr
+            , @RequestParam("title") String title, @RequestParam("contentHtml") String contentHtml
+            , @RequestParam("type") String type, @RequestParam("compiles") String compileStr
             , HttpSession session) {
         // 1. 替换html标签
         contentHtml = contentHtml.replaceAll("<u>(.*?)</u>", "<t></t>");
-        // 2. 从 html 中获取纯文本作为空白标题内容
-        String str = Jsoup.clean(contentHtml, "", Safelist.none());
-        if (title == null || title.replaceAll("\\s*", "").equals("")) {
-            title = str.substring(0, 100 > str.length() ? str.length() : 100);
-        }
-        // 3. 答案&分数处理
-        String answersValue = "";
-        String scoresValue = "";
-        for (int i = 0; i < answers.length - 1; i++) {
-            answersValue += answers[i] + "#";
-            scoresValue += scores[i] + "#";
-        }
-        answersValue += answers[answers.length - 1];
-        scoresValue += scores[answers.length - 1];
-        // 4. 添加到数据库中
+        // 2. 添加到数据库中
+        boolean res = false;
         Admin loginUserData = (Admin) session.getAttribute("loginUserData");
-        ExamCompletionBank examCompletion = new ExamCompletionBank().setAdminid(loginUserData.getAdminid())
-                .setTime(LocalDateTime.now()).setScore(scoresValue).setAnswer(answersValue)
-                .setTitle(title).setContent(contentHtml);
-        boolean res = examCompletionBankService.save(examCompletion);
-        return res ? ResultDataUtil.success() : ResultDataUtil.error(666, "添加失败");
+        if ("completion".equals(type)) {
+            ExamCompletionBank examCompletion = new ExamCompletionBank().setAdminid(loginUserData.getAdminid())
+                    .setTime(LocalDateTime.now()).setScore(scoreStr).setAnswer(answerStr)
+                    .setTitle(title).setContent(contentHtml).setId(id);
+            res = examCompletionBankService.saveOrUpdate(examCompletion);
+        } else if ("programme".equals(type)) {
+            ExamProcedureBank examProcedure = new ExamProcedureBank().setAdminid(loginUserData.getAdminid())
+                    .setTime(LocalDateTime.now()).setScore(scoreStr).setAnswer(answerStr)
+                    .setTitle(title).setContent(contentHtml).setId(id).setCompile(compileStr);
+            res = examProcedureBankService.saveOrUpdate(examProcedure);
+        }
+        return res ? ResultDataUtil.success().setMessage(id == null ? "添加成功" : "修改成功")
+                : ResultDataUtil.error(666, id == null ? "添加失败" : "修改失败");
     }
 
     /**
@@ -302,4 +306,31 @@ public class CompletionBankController {
         model.addAttribute("keyword", keyword);
         return "exam/questionBank/completionBank";
     }
+
+    /**
+     * 获取题目信息，解析到编辑界面，该编辑是详细的编辑界面
+     *
+     * @param id    题目ID
+     * @param model
+     * @return java.lang.String
+     * @author 范颂扬
+     * @date 2022-04-08 17:10
+     */
+    @GetMapping("/toEditPage/{id}")
+    public String toEditPage(@PathVariable("id") Integer id, Model model) {
+        ExamCompletionBank completionProblem = examCompletionBankService.getById(id);
+        // 解析-将答案解析到题目中
+        String content = completionProblem.getContent();
+        String[] answers = completionProblem.getAnswer().split("#");
+        for (int i = 0; i < answers.length; i++) {
+            // Matcher.quoteReplacement 过滤特殊字符
+            content = content.replaceFirst("<t></t>"
+                    , Matcher.quoteReplacement("<u>" + answers[i] + "</u>"));
+        }
+        completionProblem.setContent(content);
+        model.addAttribute("type", "completion");
+        model.addAttribute("problemData", completionProblem);
+        return "exam/questionBank/addQuestion";
+    }
+
 }
