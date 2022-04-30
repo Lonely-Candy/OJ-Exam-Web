@@ -9,6 +9,11 @@
     <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <!-- Sweet Alert -->
+    <link th:href="@{/hAdmin/css/plugins/sweetalert/sweetalert.css}" rel="stylesheet">
+    <!-- highlight -->
+    <link th:href="@{/highlight/default.min.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/iCheck/custom.css}" rel="stylesheet">
 
     <style>
         .inline-style {
@@ -22,11 +27,18 @@
             text-align: center;
         }
 
+        .problem_text {
+            font-family: 'Harmony', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";;
+            font-size: 1.5rem;
+            font-weight: 400;
+        }
+
         .input-answer {
             max-width: none;
             width: 19.2ch;
             max-height: 500px;
             display: inline-flex;
+            margin: 0;
         }
 
         .input-answer-addon {
@@ -34,6 +46,42 @@
             align-items: center;
             text-align: center;
             background-color: #e1e7ee;
+            padding: 6px 12px !important;
+        }
+
+        .problem-title {
+            display: block;
+            /*设置宽度*/
+            width: 400px;
+            /*若文字长度超过width，则隐藏文字*/
+            overflow: hidden;
+            /*超过的部分用 ... 显示*/
+            text-overflow: ellipsis;
+            /*取消文字自动换行，如果不加则文字会自动换行使得高度改变*/
+            white-space: nowrap;
+        }
+
+        .hide-title {
+            display: block;
+            /*设置宽度*/
+            width: 250px;
+            /*若文字长度超过width，则隐藏文字*/
+            overflow: hidden;
+            /*超过的部分用 ... 显示*/
+            text-overflow: ellipsis;
+            /*取消文字自动换行，如果不加则文字会自动换行使得高度改变*/
+            white-space: nowrap;
+        }
+
+        .table-hide {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #c_problem_content, #p_problem_content {
+            font-size: 15px;
         }
     </style>
 </head>
@@ -44,13 +92,13 @@
         <!-- 详细内容展示 -->
         <main style="margin-top: 10px" role="main" class="col align-self-center">
             <!-- 引入考试相关导航 -->
-            <div th:replace="~{navigation/examNav :: examNav('problemlist')}"></div>
+            <div th:replace="~{navigation/examNav :: examNav('problemlist', ${examId})}"></div>
             <!-- 题目列表 -->
             <div style="margin-top: 20px">
                 <div class="container">
                     <div class="row">
-                        <!-- 教师 -->
-                        <div th:if="${#session.getAttribute('isAdmin')}" class="col">
+                        <!-- 功能按钮 -->
+                        <div class="col">
                             <button onclick="showAddExamProblemModel()" class="btn btn-info btn-sm"
                                     type="button">
                                 <i class="fa fa-paste"></i> 添加题目
@@ -60,26 +108,21 @@
                                 <i class="fa fa-wrench"></i> 批量修改分数
                             </button>
                         </div>
-                        <!-- 学生 -->
-                        <div th:if="${!#session.getAttribute('isAdmin')}" class="col">
-                            <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#addProblemModal"
-                                    type="button"> 提交考试
-                            </button>
-                        </div>
+                        <!-- 具体内容 -->
                         <div style="margin-top: 10px" class="col">
                             <!-- 题型导航 -->
                             <ul class="nav nav-tabs">
                                 <li class="active">
                                     <a data-toggle="tab" href="#problem-1" aria-expanded="true">填空题 <span
-                                            class="badge badge-info">4</span></a>
+                                            class="badge badge-info">[[${completionProblems?.size()}]]</span></a>
                                 </li>
                                 <li class="">
                                     <a data-toggle="tab" href="#problem-2" aria-expanded="false">编程填空题 <span
-                                            class="badge badge-info">4</span></a>
+                                            class="badge badge-info">[[${programmeProblems?.size()}]]</span></a>
                                 </li>
                             </ul>
                             <!-- 题目表格 -->
-                            <div th:if="${#session.getAttribute('isAdmin')}" class="tab-content">
+                            <div class="tab-content">
                                 <!-- 填空题 -->
                                 <div id="problem-1" class="tab-pane active">
                                     <div class="panel-body">
@@ -88,127 +131,46 @@
                                             <tr>
                                                 <th scope="col">题号</th>
                                                 <th scope="col">标题</th>
-                                                <th scope="col">分数</th>
-                                                <th th:if="${!#session.getAttribute('isAdmin')}" scope="col">答题情况</th>
-                                                <th th:if="${#session.getAttribute('isAdmin')}" scope="col">操作</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr>
-                                                <th scope="row">C-1</th>
-                                                <td>
-                                                    <a href="#">第一题</a>
-                                                </td>
-                                                <td>5</td>
-                                                <td>
-                                                    <span th:if="${!#session.getAttribute('isAdmin')}"
-                                                          class="glyphicon glyphicon-ok text-success"></span>
-                                                    <button th:if="${#session.getAttribute('isAdmin')}" type="button"
-                                                            class="btn btn-sm btn-outline-danger">删除
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">C-2</th>
-                                                <td>
-                                                    <a href="#">第二题</a>
-                                                </td>
-                                                <td>5</td>
-                                                <td>
-                                                    <span th:if="${!#session.getAttribute('isAdmin')}"
-                                                          class="glyphicon glyphicon-ok text-success"></span>
-                                                    <button th:if="${#session.getAttribute('isAdmin')}" type="button"
-                                                            class="btn btn-sm btn-outline-danger">删除
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">C-3</th>
-                                                <td>
-                                                    <a href="#">第三题</a>
-                                                </td>
-                                                <td>5</td>
-                                                <td>
-                                                    <span th:if="${!#session.getAttribute('isAdmin')}"
-                                                          class="glyphicon glyphicon-ok text-success"></span>
-                                                    <button th:if="${#session.getAttribute('isAdmin')}" type="button"
-                                                            class="btn btn-sm btn-outline-danger">删除
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">C-4</th>
-                                                <td>
-                                                    <a href="#">第四题</a>
-                                                </td>
-                                                <td>5</td>
-                                                <td>
-                                                    <span th:if="${!#session.getAttribute('isAdmin')}"
-                                                          class="glyphicon glyphicon-ok text-success"></span>
-                                                    <button th:if="${#session.getAttribute('isAdmin')}" type="button"
-                                                            class="btn btn-sm btn-outline-danger">删除
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <!-- 编程填空题 -->
-                                <div id="problem-2" class="tab-pane">
-                                    <div class="panel-body">
-                                        <table class="table">
-                                            <thead>
-                                            <tr>
-                                                <th scope="col">题号</th>
-                                                <th scope="col">标题</th>
-                                                <th scope="col">分数</th>
                                                 <th scope="col">操作</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            <tr>
-                                                <th scope="row">P-1</th>
-                                                <td>
-                                                    <a href="#">第一题</a>
+                                            <tr th:each="problem, problemStat:${completionProblems}">
+                                                <th scope="row">C-[[${problemStat.count}]]</th>
+                                                <td class="table-hide">
+                                                    <a href="#">[[${problem.title}]]</a>
                                                 </td>
-                                                <td>5</td>
                                                 <td>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger">删除
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">P-2</th>
-                                                <td>
-                                                    <a href="#">第二题</a>
-                                                </td>
-                                                <td>5</td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger">删除
-                                                    </button>
+                                                    <a th:onclick="'delProblem(' + ${problem.id} + ', \'completion\')'"
+                                                       type="button" class="btn btn-sm btn-danger">删除
+                                                    </a>
                                                 </td>
                                             </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- 编程填空题 -->
+                                <div id="problem-2" class="tab-pane">
+                                    <div class="panel-body">
+                                        <table class="table">
+                                            <thead>
                                             <tr>
-                                                <th scope="row">P-3</th>
-                                                <td>
-                                                    <a href="#">第三题</a>
-                                                </td>
-                                                <td>5</td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger">删除
-                                                    </button>
-                                                </td>
+                                                <th scope="col">题号</th>
+                                                <th scope="col">标题</th>
+                                                <th scope="col">操作</th>
                                             </tr>
-                                            <tr>
-                                                <th scope="row">P-4</th>
-                                                <td>
-                                                    <a href="#">第四题</a>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="problem, problemStat:${programmeProblems}">
+                                                <th scope="row">P-[[${problemStat.count}]]</th>
+                                                <td class="table-hide">
+                                                    <a href="#">[[${problem.title}]]</a>
                                                 </td>
-                                                <td>5</td>
                                                 <td>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger">删除
-                                                    </button>
+                                                    <a th:onclick="'delProblem(' + ${problem.id} + ', \'programme\')'"
+                                                       type="button" class="btn btn-sm btn-danger">删除
+                                                    </a>
                                                 </td>
                                             </tr>
                                             </tbody>
@@ -216,260 +178,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div th:if="${!#session.getAttribute('isAdmin')}" class="tab-content">
-                                <!-- 填空题 -->
-                                <div id="problem-1" class="tab-pane active">
-                                    <div class="ibox float-e-margins">
-                                        <div class="ibox-title">
-                                            <h5><strong>C-1</strong></h5>
-                                            <div class="ibox-tools">
-                                                <span class="label label-primary">出题人：smfsy</span>
-                                                <span class="badge badge-success pull-right">分数：4分</span>
-                                            </div>
-                                        </div>
-                                        <div class="ibox-content">
-                                            <div class="feed-activity-list">
-                                                <div class="feed-element">
-                                                    <div class="media-body ">
-                                                        <div class="lead">
-                                                            Java把数据类型分为
-                                                            <div class="input-answer input-group m-b">
-                                                                <input type="text" class="form-control"> <span
-                                                                    class="input-answer-addon input-group-addon">2 分</span>
-                                                            </div>
-                                                            和
-                                                            <div class="input-answer input-group m-b">
-                                                                <input type="text" class="form-control"> <span
-                                                                    class="input-answer-addon input-group-addon">2 分</span>
-                                                            </div>
-                                                            。
-                                                        </div>
-                                                        <div class="actions">
-                                                            <nav aria-label="...">
-                                                                <ul class="pager">
-                                                                    <li><a href="#">上一题</a></li>
-                                                                    <li><a href="#">下一题</a></li>
-                                                                </ul>
-                                                            </nav>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- 编程填空题 -->
-                                <div id="problem-2" class="tab-pane">
-                                    <div class="panel-body">
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- 添加题目模态框 -->
-            <div th:if="${#session.getAttribute('isAdmin')}" class="modal fade" id="addProblemModal"
-                 data-backdrop="static" data-keyboard="false" tabindex="-1"
-                 aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">添加题目</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="input-group">
-                                <input type="text" placeholder="搜索题目" class="input form-control">
-                                <span class="input-group-btn">
-                                        <button type="button" class="btn btn btn-primary btn-sm"> <i
-                                                class="fa fa-search"></i> 搜索</button>
-                                </span>
-                            </div>
-                            <div class="clients-list">
-                                <!-- 模态框-导航栏 -->
-                                <ul class="nav nav-tabs">
-                                    <li class="active"><a data-toggle="tab" href="#tab-1"><i class="fa fa-user"></i> 填空题</a>
-                                    </li>
-                                    <li class=""><a data-toggle="tab" href="#tab-2"><i class="fa fa-briefcase"></i>
-                                        编程填空题</a>
-                                    </li>
-                                </ul>
-                                <div class="tab-content">
-                                    <!-- 填空题列表 -->
-                                    <div id="tab-1" class="active tab-pane">
-                                        <div class="full-height-scroll">
-                                            <div class="table-responsive">
-                                                <table class="table table-hover">
-                                                    <tbody>
-                                                    <tr>
-                                                        <td class="project-status">
-                                                            <input type="checkbox" class="i-checks" name="input[]">
-                                                        </td>
-                                                        <td class="project-title">
-                                                            <a type="button" data-toggle="modal" href="#"
-                                                               data-target="#showProblemModal">
-                                                                python中，使用号表示单行注释。
-                                                            </a>
-                                                            <br/>
-                                                            <small>smfsy.创建于 2014.08.15</small>
-                                                        </td>
-                                                    </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- 编程填空题列表 -->
-                                    <div id="tab-2" class="tab-pane">
-                                        <div class="full-height-scroll">
-                                            <div class="table-responsive">
-                                                <table class="table table-hover">
-                                                    <tbody>
-                                                    <tr>
-                                                        <td class="project-status">
-                                                            <input type="checkbox" class="i-checks" name="input[]">
-                                                        </td>
-                                                        <td class="project-title">
-                                                            <a href="#">
-                                                                python中，使用号表示单行注释。
-                                                            </a>
-                                                            <br/>
-                                                            <small>smfsy.创建于 2014.08.15</small>
-                                                        </td>
-                                                    </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                            <button type="button" class="btn btn-primary">添加</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- 显示题目模态框 -->
-            <div th:if="${#session.getAttribute('isAdmin')}" class="modal inmodal" id="previewProblemModal"
-                 tabindex="-1"
-                 role="dialog" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content animated flipInY">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal"><span
-                                    aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                            <h4 class="modal-title">题目预览</h4>
-                            <small class="font-bold">smfsy.创建于 2014.08.15</small>
-                        </div>
-                        <div class="modal-body">
-                            <div class="problem-content">
-                                python中，使用
-                                <span>
-                                    <div class="inline-style">
-                                        <input class="problem-value" type="text" disabled value="#">
-                                        <div class="problem-score">10分</div>
-                                    </div>
-                                </span>
-                                号表示单行注释。
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- 批量修改分数模态框 -->
-            <div th:if="${#session.getAttribute('isAdmin')}" class="modal fade" id="alterProblemScoreModal"
-                 data-backdrop="static" data-keyboard="false"
-                 tabindex="-1"
-                 aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">批量修改题目分数</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- 模态框-导航栏 -->
-                            <ul class="nav nav-tabs">
-                                <li class="active">
-                                    <a data-toggle="tab" href="#select-1"><i class="fa fa-user"></i>填空题</a>
-                                </li>
-                                <li class="">
-                                    <a data-toggle="tab" href="#select-2"><i class="fa fa-briefcase"></i>编程填空题</a>
-                                </li>
-                            </ul>
-                            <div style="margin-top: 5px" class="tab-content">
-                                <!-- 填空题列表 -->
-                                <div id="select-1" class="active tab-pane">
-                                    <table class="table table-bordered">
-                                        <thead>
-                                        <tr>
-                                            <th>标号</th>
-                                            <th>标题</th>
-                                            <th>原题目总分</th>
-                                            <th>填空题序号</th>
-                                            <th>填空题分数</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr>
-                                            <td rowspan="2">L1-1</td>
-                                            <td rowspan="2">python中，使用号表示单行注释。</td>
-                                            <td rowspan="2">10</td>
-                                            <td>1</td>
-                                            <td>5</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="display: none" rowspan="2">L1-1</td>
-                                            <td style="display: none" rowspan="2">python中，使用号表示单行注释。</td>
-                                            <td style="display: none" rowspan="2">10</td>
-                                            <td>2</td>
-                                            <td>5</td>
-                                        </tr>
-                                        <tr>
-                                            <td rowspan="3">L1-2</td>
-                                            <td rowspan="3">python中，使用号表示单行注释。</td>
-                                            <td rowspan="3">9</td>
-                                            <td>1</td>
-                                            <td>3</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="display: none" rowspan="3">L1-2</td>
-                                            <td style="display: none" rowspan="3">python中，使用号表示单行注释。</td>
-                                            <td style="display: none" rowspan="3">10</td>
-                                            <td>2</td>
-                                            <td>3</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="display: none" rowspan="3">L1-2</td>
-                                            <td style="display: none" rowspan="3">python中，使用号表示单行注释。</td>
-                                            <td style="display: none" rowspan="3">10</td>
-                                            <td>3</td>
-                                            <td>3</td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <!-- 编程填空题列表 -->
-                                <div id="select-2" class="tab-pane">
-
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                            <button type="button" class="btn btn-primary">保存</button>
                         </div>
                     </div>
                 </div>
@@ -478,12 +186,211 @@
     </div>
 </div>
 
+<!-- 添加题目模态框 -->
+<div class="modal fade" id="addProblemModal"
+     data-backdrop="static" data-keyboard="false" tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加题目</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" placeholder="搜索题目" class="input form-control">
+                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn btn-primary btn-sm"> <i
+                                                class="fa fa-search"></i> 搜索</button>
+                                </span>
+                </div>
+                <div class="clients-list">
+                    <!-- 模态框-导航栏 -->
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#tab-1"><i class="fa fa-user"></i> 填空题</a>
+                        </li>
+                        <li class=""><a data-toggle="tab" href="#tab-2"><i class="fa fa-briefcase"></i>
+                            编程填空题</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <!-- 填空题列表 -->
+                        <div id="tab-1" class="active tab-pane">
+                            <div class="full-height-scroll">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped">
+                                        <tbody id="add_table_completion_problem"></tbody>
+                                    </table>
+                                    <!-- 分页 -->
+                                    <div class="form-inline justify-content-md-center text-center">
+                                        <div id="paging_completion" class="form-group mx-sm-3 mb-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 编程填空题列表 -->
+                        <div id="tab-2" class="tab-pane">
+                            <div class="full-height-scroll">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped">
+                                        <tbody id="add_table_programme_problem"></tbody>
+                                    </table>
+                                    <!-- 分页 -->
+                                    <div class="form-inline justify-content-md-center text-center">
+                                        <div id="paging_programme" class="form-group mx-sm-3 mb-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" onclick="addProblemToExam()"
+                        class="btn btn-primary">添加
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 显示题目模态框 -->
+<div class="modal inmodal" id="previewProblemModal"
+     tabindex="-1"
+     role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated">
+            <div class="modal-header">
+                <input type="hidden" id="pro_id">
+                <button type="button" class="close" onclick="closeModal('previewProblemModal')">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 id="pro_title" class="modal-title"></h4>
+                <small id="pro_explain" class="font-bold"></small>
+            </div>
+            <div class="modal-body">
+                <div class="problem-content">
+                    <div class="problem_text" id="pro_context"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" onclick="closeModal('previewProblemModal')">关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 批量修改分数模态框 -->
+<div class="modal fade" id="alterProblemScoreModal"
+     data-backdrop="static" data-keyboard="false"
+     tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">批量修改题目分数</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- 模态框-导航栏 -->
+                <ul class="nav nav-tabs">
+                    <li class="active">
+                        <a data-toggle="tab" href="#select-1"><i class="fa fa-user"></i>填空题</a>
+                    </li>
+                    <li class="">
+                        <a data-toggle="tab" href="#select-2"><i class="fa fa-briefcase"></i>编程填空题</a>
+                    </li>
+                </ul>
+                <div style="margin-top: 5px" class="tab-content">
+                    <!-- 填空题列表 -->
+                    <div id="select-1" class="active tab-pane">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>标号</th>
+                                <th>标题</th>
+                                <th>原题目总分</th>
+                                <th>填空题序号</th>
+                                <th>填空题分数</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="problem, problemStat:${completionProblemScores}">
+                                <td th:style="${problem.blankId != 1 ? 'display: none':''}"
+                                    th:rowspan="${problem.blankSum}">C-[[${problemStat.count}]]
+                                </td>
+                                <td th:style="${problem.blankId != 1 ? 'display: none':''}" class="table-hide"
+                                    th:rowspan="${problem.blankSum}">[[${problem.title}]]
+                                </td>
+                                <td th:style="${problem.blankId != 1 ? 'display: none':''}"
+                                    th:rowspan="${problem.blankSum}">[[${problem.totalPoints}]]
+                                </td>
+                                <td>[[${problem.blankId}]]</td>
+                                <td th:id="'c-score-' + ${problem.id} + '-' + ${problem.blankId}"
+                                    ondblclick="editCells(this)">[[${problem.score}]]
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 编程填空题列表 -->
+                    <div id="select-2" class="tab-pane">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>标号</th>
+                                <th>标题</th>
+                                <th>原题目总分</th>
+                                <th>测速数据序号</th>
+                                <th>测试数据分数</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="problem, problemStat:${programmeProblemScores}">
+                                <td th:style="${problem.blankId != 1 ? 'display: none':''}"
+                                    th:rowspan="${problem.blankSum}">P-[[${problemStat.count}]]
+                                </td>
+                                <td th:style="${problem.blankId != 1 ? 'display: none':''}" class="table-hide"
+                                    th:rowspan="${problem.blankSum}">[[${problem.title}]]
+                                </td>
+                                <td th:style="${problem.blankId != 1 ? 'display: none':''}"
+                                    th:rowspan="${problem.blankSum}">[[${problem.totalPoints}]]
+                                </td>
+                                <td>[[${problem.blankId}]]</td>
+                                <td th:id="'p-score-' + ${problem.id} + '-' + ${problem.blankId}"
+                                    ondblclick="editCells(this)">
+                                    [[${problem.score}]]
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" onclick="saveScore()" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
 <script th:src="@{/hAdmin/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
+<!-- Sweet alert -->
+<script th:src="@{/hAdmin/js/plugins/sweetalert/sweetalert.min.js}"></script>
 <!-- 自定义js -->
 <script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
+<!-- wangEditor -->
+<script type="text/javascript" th:src="@{/webjars/wangeditor/4.7.5/dist/wangEditor.min.js}"></script>
+<!-- highlight -->
+<script type="text/javascript" th:src="@{/highlight/highlight.min.js}"></script>
 <script>
     $(function () {
         $('.full-height-scroll').slimScroll({
@@ -491,13 +398,91 @@
         });
     });
 </script>
-<script th:inline="javascript" th:if="${#session.getAttribute('isAdmin')}">
+<script th:inline="javascript">
+    // 旧分数
+    let oldScore;
+
+    /**
+     * 处理题目显示内容
+     */
+    const disposeProblem = function (type, problemList) {
+        let html = "";
+        for (let i = 0; i < problemList.length; i++) {
+            html += '<tr><td class="project-status">' +
+                '<input value="' + type + '-' + problemList[i].id + '" type="checkbox" class="i-checks" name="input[]"></td>' +
+                '<td class="project-title">' +
+                '<a onclick="showPreviewProblemModel(\'' + type + '\', ' + problemList[i].id + ')" class="problem-title" type="button" data-toggle="modal" data-target="#showProblemModal">' +
+                problemList[i].title + '</a>' +
+                '<small>' + problemList[i].adminid + '.创建于 '
+                + new String(problemList[i].time).replace('T', ' ') + '</small></td></tr>';
+        }
+        return html;
+    }
+
+    /**
+     * 处理题目分页条
+     */
+    const disposePaging = function (type, problemData) {
+        let html = '<span>当前一共有 ' + problemData.pages + ' 页，共 ' + problemData.total + ' 道题</span>' +
+            '<nav aria-label="Page navigation example"><ul class="pagination justify-content-center">' +
+            '<li class="' + (problemData.current > 1 ? 'page-item' : 'page-item disabled') + '">' +
+            '<a class="page-link" ' +
+            'onclick="disposeAddExamProblemModel(\'' + type + '\', ' + (problemData.current - 1) + ')" aria-label="Previous">' +
+            '<span aria-hidden="true">&laquo;</span></a></li>' +
+            '<li class="page-item active"><a class="page-link" href="#">' + problemData.current + '</a></li>' +
+            '<li class="' + (problemData.current < problemData.pages ? 'page-item' : 'page-item disabled') + '">' +
+            '<a class="page-link"' +
+            'onclick="disposeAddExamProblemModel(\'' + type + '\', ' + (problemData.current + 1) + ')" aria-label="Next">' +
+            '<span aria-hidden="true">&raquo;</span></a></li></ul></nav>';
+        return html;
+    }
+
+    /**
+     * 根据页码获取题目列表
+     * @param type 题目类型
+     * @param index 页码
+     */
+    const getProblemDataByPageIndex = function (type, index) {
+        let problemData;
+        $.ajaxSettings.async = false;
+        $.get("/exam/getAllProblem/" + index + "?type=" + type, function (data, status) {
+            if (status == 'success') {
+                if (data.code == 777) {
+                    problemData = data.data;
+                } else {
+                    swal({title: data.message, text: "请联系管理员", type: "warning"});
+                }
+            }
+        });
+        $.ajaxSettings.async = true;
+        return problemData;
+    }
+
+    /**
+     * 处理添加题目模态框
+     */
+    const disposeAddExamProblemModel = function (type, index) {
+        // 获取题目数据
+        let problemData = getProblemDataByPageIndex(type, index);
+        // 处理题目显示
+        let htmlTable = disposeProblem(type, problemData.records);
+        $("#add_table_" + type + "_problem").html(htmlTable);
+        // 处理题目分页条
+        let htmlPaging = disposePaging(type, problemData);
+        $("#paging_" + type).html(htmlPaging);
+    }
+
     /**
      * 显示添加考题模态框
      */
     const showAddExamProblemModel = function () {
+        // 填空题处理
+        disposeAddExamProblemModel('completion', 1);
+        // 编程填空题处理
+        disposeAddExamProblemModel('programme', 1);
+        // 显示模态框
         $("#addProblemModal").modal('show');
-    };
+    }
 
     /**
      * 显示修改题目分数模态框
@@ -509,8 +494,195 @@
     /**
      * 预览题目信息模态框
      */
-    const showPreviewProblemModel = function () {
-        $("#previewProblemModal").modal('show');
+    const showPreviewProblemModel = function (type, proId) {
+        $.get("/getProblem/" + proId + "?type=" + type, function (data, status) {
+            if (status == "success") {
+                if (data.code == 777) {
+                    let resultData = data.data;
+                    $("#pro_id").attr("value", resultData.id);
+                    if (type == 'completion') {
+                        $("#pro_title").text("题目预览-" + resultData.id + " (" + resultData.totalPoints + "分)");
+                    }
+                    if (type == 'programme') {
+                        $("#pro_title").text("编程填空题");
+                    }
+                    $("#pro_explain").text(resultData.adminid + " 创建于 " + resultData.time);
+                    $("#pro_context").html(resultData.replaceContext)
+                        .attr("blankSum", resultData.blankSum);
+                    $("#previewProblemModal").modal('show');
+                }
+            }
+        });
+    }
+
+    /**
+     * 关闭模态框
+     * @param id 模态框 ID
+     */
+    const closeModal = function (id) {
+        $("#" + id).modal('toggle');
+        // 解决在嵌套多个模态框时，关闭顶层模态框，导致底层模态框的滚动条消失
+        $("body").addClass("modal-open");
+    }
+
+    /**
+     * 添加题目到考试中
+     */
+    const addProblemToExam = function () {
+        let completionProIdArray = new Array();
+        let programmeProIdArray = new Array();
+        $("input:checkbox:checked").each(function () {
+            let value = $(this).val().split('-');
+            if (value[0] == 'completion') {
+                completionProIdArray.push(value[1]);
+            }
+            if (value[0] == 'programme') {
+                programmeProIdArray.push(value[1]);
+            }
+        });
+        $.post("/exam/addProblemToExam", {
+            "completions": completionProIdArray,
+            "programmes": programmeProIdArray,
+            "examId": [[${examId}]]
+        }, function (data, status) {
+            if (status == 'success') {
+                if (data.code == 777) {
+                    swal({title: "添加成功", type: 'success'}, function () {
+                        history.go(0);
+                    });
+                } else {
+                    swal({title: "添加失败", text: data.message, type: 'warning'});
+                }
+            } else {
+                swal({title: "服务器异常", text: "请联系管理员", type: 'error'});
+            }
+        });
+    }
+
+    /**
+     * 双击分数表格
+     */
+    const editCells = function (e) {
+        oldScore = $.trim($(e).text());
+        e.innerHTML = '<input id="score_change_input" onblur="inputOnblur(this)">';
+        setTimeout("$('#score_change_input').focus().val(oldScore)", 1);
+    };
+
+    /**
+     * 分数表格失去焦点
+     */
+    const inputOnblur = function (e) {
+        let score = $.trim($(e).val());
+        if (oldScore != score) {
+            $(e).parents('td').attr("isChange", "true");
+        }
+        $(e).parents('td').html(score)
+    }
+
+    /**
+     * 保存分数表格
+     */
+    const saveScore = function () {
+        let cProblem = [[${completionProblems}]];
+        let pProblem = [[${programmeProblems}]];
+        let newCompletionProblem = new Array();
+        let newProgrammeProblem = new Array();
+        for (let i = 0; i < cProblem.length; i++) {
+            let id = cProblem[i].id;
+            let scoresLength = cProblem[i].scores.length;
+            let isSave = false;
+            for (let j = 0; j < scoresLength; j++) {
+                let className = "#" + "c-score-" + id + "-" + (j + 1);
+                let isChange = $(className).attr("isChange");
+                if (isChange) {
+                    isSave = true;
+                    cProblem[i].scores[j] = $.trim($(className).text());
+                }
+                $(className).removeAttr("isChange");
+            }
+            if (isSave) {
+                newCompletionProblem.push(cProblem[i]);
+            }
+        }
+        for (let i = 0; i < pProblem.length; i++) {
+            let id = pProblem[i].id;
+            let scoresLength = pProblem[i].scores.length;
+            let isSave = false;
+            for (let j = 0; j < scoresLength; j++) {
+                let className = "#" + "p-score-" + id + "-" + (j + 1);
+                let isChange = $(className).attr("isChange");
+                if (isChange) {
+                    isSave = true;
+                    pProblem[i].scores[j] = $.trim($(className).text());
+                }
+                $(className).removeAttr("isChange");
+            }
+            if (isSave) {
+                newProgrammeProblem.push(pProblem[i]);
+            }
+        }
+        let problemList = new Array();
+        problemList.push(newProgrammeProblem);
+        problemList.push(newCompletionProblem);
+        $.ajax({
+            type: 'post',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            url: "/exam/editProblemScore/" + [[${examId}]],
+            success: function (data, status) {
+                if (status) {
+                    if (data.code == 777) {
+                        swal({title: "修改成功", type: "success"}, function () {
+                            history.go(0);
+                        })
+                    } else {
+                        swal("修改失败", data.message, 'warning');
+                    }
+                } else {
+                    swal("服务器异常", "请联系管理员", "error");
+                }
+            },
+            data: JSON.stringify(problemList)
+        });
+    };
+
+    /**
+     * 删除题目
+     * @param proId 题目ID
+     */
+    const delProblem = function (proId, type) {
+        swal({
+                title: "您确定要删除该题目吗",
+                text: "删除后将无法恢复，请谨慎操作！",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "是的，我要删除！",
+                cancelButtonText: "让我再考虑一下…",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.get('/exam/delProblem/' + proId + '/' + [[${examId}]] + "?type=" + type, function (data, status) {
+                        if (status == "success") {
+                            if (data.code == 777) {
+                                swal({title: "删除成功", type: 'success'}, function () {
+                                    history.go(0);
+                                })
+                            } else {
+                                swal("删除失败", data.message, 'warning');
+                            }
+                        } else {
+                            swal("服务器异常", "请联系管理员", 'error');
+                        }
+                    });
+                } else {
+                    swal("已取消", "您取消了删除操作！", "error");
+                }
+            });
     }
 </script>
 </body>

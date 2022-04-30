@@ -40,7 +40,10 @@
         用户名不存在或者密码错误！
     </div>
     <div th:if="${message == 'no_login'}" class="alert alert-danger" role="alert">
-        请先登录！
+        未登录，请先登录！
+    </div>
+    <div th:if="${message == 'not_a_student'}" class="alert alert-danger" role="alert">
+        当前登录账号不是学生账号，无法进行操作，请重新登录！
     </div>
     <button class="btn btn-lg btn-primary btn-block" type="submit">登 录</button>
     <p class="mt-5 mb-3 text-muted">&copy; 2021-2022</p>

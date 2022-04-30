@@ -11,11 +11,13 @@ import com.smxy.exam.service.IExamCompletionBankService;
 import com.smxy.exam.service.IExamProcedureBankService;
 import com.smxy.exam.util.FileUtil;
 import com.smxy.exam.util.ResultDataUtil;
+import com.smxy.exam.util.StringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -46,7 +48,7 @@ public class ProblemBankController {
 
     public static final String TEST_DATA_OUTPUT_DATA_FILE_NAME = "output.out";
 
-    public static final String PROGRAMME_PROBLEM_FILE_NAME_FILE_NAME = "programmes";
+    public static final String PROGRAMME_PROBLEM_FILE_NAME_FILE_NAME = "programme";
 
     private IExamCompletionBankService examCompletionBankService;
 
@@ -80,7 +82,12 @@ public class ProblemBankController {
             , HttpSession session) {
         // 1. 替换html标签
         contentHtml = contentHtml.replaceAll("<u>(.*?)</u>", "<t></t>");
-        // 2. 添加到数据库中
+        // 2. 从 html 中获取纯文本作为空白标题内容
+        String str = Jsoup.clean(contentHtml, "", Safelist.none());
+        if (title == null || title.replaceAll("\\s*", "").equals("")) {
+            title = str.substring(0, 100 > str.length() ? str.length() : 100);
+        }
+        // 3. 添加到数据库中
         boolean res = false;
         Admin loginUserData = (Admin) session.getAttribute("loginUserData");
         if ("completion".equals(type)) {
@@ -90,7 +97,7 @@ public class ProblemBankController {
             res = examCompletionBankService.saveOrUpdate(examCompletion);
         } else if ("programme".equals(type)) {
             ExamProcedureBank examProcedure = new ExamProcedureBank().setAdminid(loginUserData.getAdminid())
-                    .setTime(LocalDateTime.now()).setScore(scoreStr).setAnswer(answerStr)
+                    .setTime(LocalDateTime.now()).setScore(scoreStr != null && scoreStr.equals("") ? null : scoreStr).setAnswer(answerStr)
                     .setTitle(title).setContent(contentHtml).setId(id).setCompile(compileStr);
             res = examProcedureBankService.saveOrUpdate(examProcedure);
         }
@@ -108,8 +115,7 @@ public class ProblemBankController {
      * @date 2022-03-31 16:00
      */
     @GetMapping("/getAllProblem/{index}")
-    public String getAllCompletionProblem(@PathVariable("index") Integer index
-            , @PathParam("type") String type, Model model) {
+    public String getAllProblem(@PathVariable("index") Integer index, @PathParam("type") String type, Model model) {
         Page page = null;
         String toPagePath = null;
         if ("completion".equals(type)) {
@@ -135,7 +141,7 @@ public class ProblemBankController {
      */
     @ResponseBody
     @GetMapping("/getProblem/{proId}")
-    public ResultData getCompletionProblemById(@PathVariable("proId") Integer proId
+    public ResultData getProblemById(@PathVariable("proId") Integer proId
             , @PathParam("type") String type) {
         Object resultData = null;
         if ("completion".equals(type)) {
@@ -157,7 +163,7 @@ public class ProblemBankController {
      */
     @Data
     @Accessors(chain = true)
-    private class ProblemShowData {
+    public static class ProblemShowData {
         /**
          * 题号
          */
@@ -218,6 +224,11 @@ public class ProblemBankController {
          */
         private Integer blankSum;
 
+        /**
+         * 使用的编译器
+         */
+        private String compilers;
+
         public ProblemShowData(Object xxXBank) {
             if (xxXBank instanceof ExamCompletionBank) {
                 createCompletionProblemShowData((ExamCompletionBank) xxXBank);
@@ -242,8 +253,7 @@ public class ProblemBankController {
             for (int i = 0; i < scores.length; i++) {
                 totalPoints += Double.parseDouble(scores[i]);
             }
-            this.totalPoints = new BigDecimal(String.valueOf(totalPoints))
-                    .stripTrailingZeros().toPlainString();
+            this.totalPoints = StringUtil.getNumberNoInvalidZero(totalPoints);
             // 替换内容
             replaceContext = replaceContext(true, true, true
                     , content, answer, score);
@@ -261,15 +271,15 @@ public class ProblemBankController {
             this.score = examProcedureBank.getScore();
             this.time = examProcedureBank.getTime().toString().replace('T', ' ');
             this.adminid = examProcedureBank.getAdminid();
+            this.compilers = examProcedureBank.getCompile();
             // 计算总分
             String[] scores = score.split("#");
             this.blankSum = scores.length;
             double totalPoints = 0d;
-//            for (int i = 0; i < scores.length; i++) {
-//                totalPoints += Double.parseDouble(scores[i]);
-//            }
-            this.totalPoints = new BigDecimal(String.valueOf(totalPoints))
-                    .stripTrailingZeros().toPlainString();
+            for (int i = 0; i < scores.length; i++) {
+                totalPoints += Double.parseDouble(scores[i]);
+            }
+            this.totalPoints = StringUtil.getNumberNoInvalidZero(totalPoints);
             // 替换内容
             replaceContext = replaceContext(true, true, false
                     , content, answer, score);
@@ -332,7 +342,7 @@ public class ProblemBankController {
      */
     @ResponseBody
     @PostMapping("/editProblem/{id}")
-    public ResultData editCompletionProblemById(@PathVariable("id") Integer id
+    public ResultData editProblemById(@PathVariable("id") Integer id
             , @RequestParam String answer) {
         ExamCompletionBank examCompletion = new ExamCompletionBank().setId(id).setAnswer(answer);
         boolean res = examCompletionBankService.updateById(examCompletion);
@@ -350,7 +360,7 @@ public class ProblemBankController {
      */
     @ResponseBody
     @GetMapping("/deleteProblem/{id}")
-    public ResultData deleteCompletionById(@PathVariable("id") Integer id, @PathParam("type") String type) {
+    public ResultData deleteById(@PathVariable("id") Integer id, @PathParam("type") String type) {
         boolean res = false;
         if ("compeltion".equals(type)) {
             res = examCompletionBankService.removeById(id);

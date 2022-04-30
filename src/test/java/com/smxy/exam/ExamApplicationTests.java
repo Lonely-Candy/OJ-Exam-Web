@@ -1,23 +1,42 @@
 package com.smxy.exam;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
-import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
+import com.smxy.exam.beans.ExamCompletionStatus;
+import com.smxy.exam.beans.ExamProcedureProblem;
+import com.smxy.exam.beans.ExamProcedureStatus;
+import com.smxy.exam.beans.ExamRecord;
+import com.smxy.exam.service.*;
 import com.smxy.exam.util.FileUtil;
-import lombok.Getter;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 
 @SpringBootTest
 class ExamApplicationTests {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("lead");
+
+    @Autowired
+    private IExamCompletionBankService examCompletionBankService;
+
+    @Autowired
+    private IExamProcedureProblemService examProcedureProblemService;
+
+    @Autowired
+    private IExamProcedureStatusService examProcedureStatusService;
+
+    @Autowired
+    private IExamCompletionStatusService examCompletionStatusService;
+
+    @Autowired
+    private IExamRecordService examRecordService;
 
     @Test
     void testGenerator() {
@@ -57,7 +76,7 @@ class ExamApplicationTests {
             folderNames[i] = folders[i].getName();
         }
         stringSort(folderNames);
-        for(String name : folderNames) {
+        for (String name : folderNames) {
             System.out.println(name);
         }
     }
@@ -84,6 +103,45 @@ class ExamApplicationTests {
         File file = new File("D:\\OnlineJudge\\exam\\testData\\programmes\\1\\test-0");
         String parent = file.getParent();
         System.out.println(parent);
+    }
+
+    @Test
+    void testMyBatisTool() {
+//        Wrapper<ExamCompletionBank> queryWrapper = new QueryWrapper<ExamCompletionBank>().in("id"
+//                , new int[]{9, 10, 11});
+//        List<Map<String, Object>> maps = examCompletionBankService.listMaps();
+//        for (int i = 0; i < maps.size(); i++) {
+//            System.out.println(maps.get(i));
+//        }
+        Wrapper<ExamProcedureProblem> procedureQueryWrapper = new QueryWrapper<ExamProcedureProblem>()
+                .eq("exam_id", 1).select("score");
+        List<Object> procedureProblems = examProcedureProblemService.listObjs(procedureQueryWrapper);
+        System.out.println(procedureProblems);
+    }
+
+    @Test
+    void testMybatisPlusInsert() {
+//        List<ExamRecord> records = new ArrayList<>();
+//        records.add(new ExamRecord().setExamId(1).setUserName("xxx").setBeginTime(new Date()).setUserId("1231231"));
+//        records.add(new ExamRecord().setExamId(1).setUserName("xxx").setBeginTime(new Date()).setUserId("1231231"));
+//        records.add(new ExamRecord().setExamId(1).setUserName("xxx").setBeginTime(new Date()).setUserId("1231231"));
+//        records.add(new ExamRecord().setExamId(1).setUserName("xxx").setBeginTime(new Date()).setUserId("1231231"));
+//        examRecordService.saveBatch(records);
+//        for (int i = 0; i < records.size(); i++) {
+//            System.out.println(records.get(i));
+//        }
+        Wrapper<ExamProcedureStatus> programmeQueryWrapper = new QueryWrapper<ExamProcedureStatus>()
+                .eq("exam_id", 1).eq("user_id", "20180865114")
+                .select("problem_id, case_test_data_id, max(score) as score")
+                .groupBy("problem_id", "case_test_data_id");
+        Wrapper<ExamCompletionStatus> completionQueryWrapper = new QueryWrapper<ExamCompletionStatus>()
+                .eq("exam_id", 1).eq("user_id", "20180865114").select("sum(score) as score");
+        List<ExamProcedureStatus> procedureStatuses = examProcedureStatusService.list(programmeQueryWrapper);
+        ExamCompletionStatus completionStatuses = examCompletionStatusService.getOne(completionQueryWrapper);
+        System.out.println(completionStatuses);
+        for (ExamProcedureStatus procedureStatus : procedureStatuses) {
+            System.out.println(procedureStatus);
+        }
     }
 
 }

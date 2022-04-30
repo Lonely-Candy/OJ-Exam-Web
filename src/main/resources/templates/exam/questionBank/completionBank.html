@@ -106,20 +106,20 @@
                                     <ul class="pagination justify-content-center">
                                         <li th:class="${problemData.hasPrevious() ? 'page-item' : 'page-item disabled'}">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 1}}"
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=completion'}"
                                                aria-label="Previous">
                                                 <span aria-hidden="true">&laquo;</span>
                                             </a>
                                         </li>
                                         <li th:if="${problemData.getCurrent() - 2 > 0}" class="page-item">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 2}}">
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 2} + '?type=completion'}">
                                                 [[problemData.getCurrent() - 2]]
                                             </a>
                                         </li>
                                         <li th:if="${problemData.hasPrevious()}" class="page-item">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 1}}">
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=completion'} ">
                                                 [[${problemData.getCurrent() - 1}]]</a>
                                         </li>
                                         <li class="page-item active">
@@ -127,20 +127,20 @@
                                         </li>
                                         <li th:if="${problemData.hasNext()}" class="page-item">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 1}}">
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 1} + '?type=completion'}">
                                                 [[${problemData.getCurrent() + 1}]]
                                             </a>
                                         </li>
                                         <li th:if="${problemData.getCurrent() + 2 <= problemData.getPages()}"
                                             class="page-item">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 2}}">
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 2} + '?type=completion'}">
                                                 [[problemData.getCurrent() + 2]]
                                             </a>
                                         </li>
                                         <li th:class="${problemData.hasNext() ? 'page-item' : 'page-item disabled'}">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 2}}"
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 2} + '?type=completion'}"
                                                aria-label="Next">
                                                 <span aria-hidden="true">&raquo;</span>
                                             </a>
@@ -155,6 +155,7 @@
         </div>
     </div>
 </div>
+
 <!-- 显示题目模态框 -->
 <div th:if="${#session.getAttribute('isAdmin')}" class="modal inmodal" id="showProblemModal" tabindex="-1"
      role="dialog" aria-hidden="true">
@@ -179,7 +180,6 @@
         </div>
     </div>
 </div>
-
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>

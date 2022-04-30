@@ -61,7 +61,7 @@ public class FileUtil {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                printErrorLog("createFile", e.getMessage());
+                printErrorLog("createFile", e);
                 return false;
             }
         }
@@ -84,7 +84,7 @@ public class FileUtil {
     public static void closeStream(BufferedWriter bufferedWriter
             , OutputStreamWriter outputStreamWriter, FileOutputStream fileOutputStream
             , BufferedReader bufferedReader, InputStreamReader inputStreamReader
-            , FileInputStream fileInputStream) {
+            , FileInputStream fileInputStream, OutputStream outputStream) {
         try {
             if (bufferedWriter != null) {
                 bufferedWriter.close();
@@ -104,8 +104,11 @@ public class FileUtil {
             if (fileInputStream != null) {
                 fileInputStream.close();
             }
+            if (outputStream != null) {
+                outputStream.close();
+            }
         } catch (IOException e) {
-            printErrorLog("closeStream", e.getMessage());
+            printErrorLog("closeStream", e);
         }
     }
 
@@ -128,14 +131,14 @@ public class FileUtil {
             bufferedWriter = new BufferedWriter(outputStreamWriter);
             bufferedWriter.write(data);
         } catch (FileNotFoundException e) {
-            printErrorLog("writeFile", e.getMessage());
+            printErrorLog("writeFile", e);
             return false;
         } catch (IOException e) {
-            printErrorLog("writeFile", e.getMessage());
+            printErrorLog("writeFile", e);
             return false;
         } finally {
             closeStream(bufferedWriter, outputStreamWriter, fileOutputStream
-                    , null, null, null);
+                    , null, null, null, null);
         }
         return true;
     }
@@ -163,14 +166,14 @@ public class FileUtil {
                 dataBuffer.append("\n");
             }
         } catch (FileNotFoundException e) {
-            printErrorLog("readFile", e.getMessage());
+            printErrorLog("readFile", e);
             return null;
         } catch (IOException e) {
-            printErrorLog("readFile", e.getMessage());
+            printErrorLog("readFile", e);
             return null;
         } finally {
             closeStream(null, null, null
-                    , bufferedReader, inputStreamReader, fileInputStream);
+                    , bufferedReader, inputStreamReader, fileInputStream, null);
         }
         return dataBuffer.toString();
     }
@@ -199,6 +202,9 @@ public class FileUtil {
      */
     public static boolean deleteFileGeneral(String filePath) {
         File file = new File(filePath);
+        if (!file.exists()) {
+            return false;
+        }
         if (file.isFile()) {
             return deleteFile(filePath);
         }
@@ -213,14 +219,17 @@ public class FileUtil {
      * @author 范颂扬
      * @date 2022-04-15 14:20
      */
-    private static boolean deleteFolder(String filePath) {
+    public static boolean deleteFolder(String filePath) {
+        if (!new File(filePath).exists()) {
+            return false;
+        }
         Path path = Paths.get(filePath);
         try {
             Stream<Path> stream = Files.walk(path);
             stream.sorted(Comparator.reverseOrder()).forEach(FileUtil::deleteSteam);
             return true;
         } catch (IOException e) {
-            printErrorLog("deleteFolder", e.getMessage());
+            printErrorLog("deleteFolder", e);
         }
         return false;
     }
@@ -237,7 +246,7 @@ public class FileUtil {
         try {
             Files.delete(path);
         } catch (IOException e) {
-            printErrorLog("deleteSteam", e.getMessage());
+            printErrorLog("deleteSteam", e);
         }
     }
 
@@ -249,12 +258,15 @@ public class FileUtil {
      * @author 范颂扬
      * @date 2022-04-15 14:20
      */
-    private static boolean deleteFile(String filePath) {
+    public static boolean deleteFile(String filePath) {
+        if (!new File(filePath).exists()) {
+            return false;
+        }
         Path path = Paths.get(filePath);
         try {
             return Files.deleteIfExists(path);
         } catch (IOException e) {
-            printErrorLog("deleteFile", e.getMessage());
+            printErrorLog("deleteFile", e);
             return false;
         }
     }
@@ -291,14 +303,14 @@ public class FileUtil {
      * 输出错误日志
      *
      * @param methodName
-     * @param errorMessage
+     * @param e
      * @return void
      * @author 范颂扬
      * @date 2022-04-13 23:08
      */
-    private static void printErrorLog(String methodName, String errorMessage) {
+    private static void printErrorLog(String methodName, Exception e) {
         LOGGER.error("carry out method name: " + methodName);
-        LOGGER.error("exception message: " + errorMessage);
+        LOGGER.error("Error Message ", e);
     }
 
 }

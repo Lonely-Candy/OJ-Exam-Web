@@ -1,5 +1,6 @@
 package com.smxy.exam.config;
 
+import com.smxy.exam.interceptor.ExamLerInterceptor;
 import com.smxy.exam.interceptor.LoginLerInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +36,6 @@ public class MyMvcConfig {
                 registry.addViewController("/exam/addExam.html").setViewName("exam/addExam");
                 registry.addViewController("/exam/examlist.html").setViewName("exam/examlist");
                 registry.addViewController("/exam/questionSet/content.html").setViewName("exam/questionSet/content");
-                registry.addViewController("/exam/questionSet/problemlist.html").setViewName("exam/questionSet/problemlist");
                 registry.addViewController("/exam/questionSet/ranking.html").setViewName("exam/questionSet/ranking");
                 registry.addViewController("/exam/questionSet/studentlist.html").setViewName("exam/questionSet/studentlist");
                 registry.addViewController("/exam/questionSet/submitCondition.html").setViewName("exam/questionSet/submitCondition");
@@ -48,6 +48,8 @@ public class MyMvcConfig {
                 registry.addInterceptor(new LoginLerInterceptor()).addPathPatterns("/**")
                         .excludePathPatterns("/", "/index.html", "/login.html", "/login", "/error")
                         .excludePathPatterns("/css/**", "/image/**", "/webjars/**");
+                // 学生操作拦截
+                registry.addInterceptor(new ExamLerInterceptor()).addPathPatterns("/student/**");
             }
         };
         return webMvcConfigurer;

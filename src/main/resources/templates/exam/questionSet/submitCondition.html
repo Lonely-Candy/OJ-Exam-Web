@@ -63,86 +63,28 @@
         <!-- 详细内容展示 -->
         <main style="margin-top: 10px" role="main" class="col align-self-center">
             <!-- 引入考试相关导航 -->
-            <div th:replace="~{navigation/examNav :: examNav('submitCondition')}"></div>
+            <div th:replace="~{navigation/examNav :: examNav('submitCondition', ${examId})}"></div>
             <!-- 学生提交 -->
             <div style="margin-top: 20px">
                 <table class="table">
                     <thead>
                     <tr>
                         <th scope="col">提交时间</th>
-                        <th scope="col">状态</th>
                         <th scope="col">分数</th>
                         <th scope="col">题目</th>
-                        <th scope="col">编译器</th>
-                        <th scope="col">耗时</th>
                         <th scope="col">用户</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <th scope="row">2022-03-11 16:00:00</th>
+                    <tr th:each="problem, problemStat:${problemStates}">
+                        <th scope="row">[[${problem.submitTime.toString().replace('T', ' ')}]]</th>
                         <td>
-                            <span class="label label-info">答案正确</span>
+                            <a data-toggle="modal" data-target="#showScore" type="button">
+                                [[${problem.totalScore}]]
+                            </a>
                         </td>
-                        <td>
-                            <a data-toggle="modal" data-target="#showScore" type="button">10</a>
-                        </td>
-                        <td>L1-1</td>
-                        <td>C++</td>
-                        <td>86 ms</td>
-                        <td>20180865114</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2022-03-11 16:00:00</th>
-                        <td>
-                            <span class="label label-warning">部分正确</span>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>L1-2</td>
-                        <td>C++</td>
-                        <td>86 ms</td>
-                        <td>20180865114</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2022-03-11 16:00:00</th>
-                        <td>
-                            <span class="label label-success">编译错误</span>
-                        </td>
-                        <td>
-                            <a href="#">0</a>
-                        </td>
-                        <td>L1-3</td>
-                        <td>C++</td>
-                        <td>86 ms</td>
-                        <td>20180865114</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2022-03-11 16:00:00</th>
-                        <td>
-                            <span class="label label-danger">答案错误</span>
-                        </td>
-                        <td>
-                            <a href="#">0</a>
-                        </td>
-                        <td>L1-4</td>
-                        <td>C++</td>
-                        <td>86 ms</td>
-                        <td>20180865114</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2022-03-11 16:00:00</th>
-                        <td>
-                            <span class="label label-primary">运行超时</span>
-                        </td>
-                        <td>
-                            <a href="#">0</a>
-                        </td>
-                        <td>L1-4</td>
-                        <td>C++</td>
-                        <td>86 ms</td>
-                        <td>20180865114</td>
+                        <td>P-[[${problemStat.count}]]</td>
+                        <td>[[${problem.userId}]]</td>
                     </tr>
                     </tbody>
                 </table>
@@ -273,14 +215,11 @@ function VoiceCtrl($scope) {
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
-
 <!-- Peity -->
 <script th:src="@{/hAdmin/js/plugins/peity/jquery.peity.min.js}"></script>
-
 <!-- CodeMirror -->
 <script th:src="@{/hAdmin/js/plugins/codemirror/codemirror.js}"></script>
 <script th:src="@{/hAdmin/js/plugins/codemirror/mode/javascript/javascript.js}"></script>
-
 <!-- 自定义js -->
 <script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
 

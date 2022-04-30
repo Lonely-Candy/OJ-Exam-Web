@@ -3,6 +3,7 @@ package com.smxy.exam.beans;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.smxy.exam.util.StringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author fsy
@@ -43,7 +44,12 @@ public class ExamProcedureStatus implements Serializable {
     /**
      * 题号
      */
-    private String problemId;
+    private Integer problemId;
+
+    /**
+     * 测试数据ID
+     */
+    private Integer caseTestDataId;
 
     /**
      * 运行内存大小
@@ -85,5 +91,33 @@ public class ExamProcedureStatus implements Serializable {
      */
     private LocalDateTime submitTime;
 
+    /**
+     * 答案
+     */
+    private String answer;
+
+    /**
+     * 编译信息
+     */
+    private String compilerMessage;
+
+    public ExamProcedureStatus() {
+        super();
+    }
+
+    /**
+     * 根据判题结果，重新封装判题后的结果数据
+     *
+     * @param record
+     * @param compilerMessage
+     */
+    public ExamProcedureStatus(RunRecord record, String compilerMessage) {
+        this.id = record.getId();
+        this.compilerMessage = compilerMessage;
+        this.memory = record.getMemory();
+        this.time = record.getTime();
+        this.result = record.getResult();
+        this.score = Float.parseFloat(record.getScores() == null ? "0" : record.getScores());
+    }
 
 }

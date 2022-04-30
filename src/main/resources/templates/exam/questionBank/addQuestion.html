@@ -10,7 +10,6 @@
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
     <!-- Sweet Alert -->
     <link th:href="@{/hAdmin/css/plugins/sweetalert/sweetalert.css}" rel="stylesheet">
-    <!--    <link th:href="@{/webjars/wangeditor/4.7.5/dist}" rel="stylesheet">-->
     <!-- highlight -->
     <link th:href="@{/highlight/default.min.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/plugins/iCheck/custom.css}" rel="stylesheet">
@@ -53,7 +52,7 @@
                             <div class="ibox-content">
                                 <!-- 题目标题 -->
                                 <input th:value="${problemData != null ? problemData.title : ''}"
-                                       id="title_completion" placeholder="填写标题" type="text"
+                                       id="title_completion" placeholder="填写标题，可不填写，默认使用题目内容的简略信息" type="text"
                                        class="form-control">
                             </div>
                         </div>
@@ -126,7 +125,7 @@
                             <div class="ibox-content">
                                 <!-- 题目标题 -->
                                 <input th:value="${problemData != null ? problemData.title : ''}"
-                                       id="title_programme" placeholder="填写标题" type="text"
+                                       id="title_programme" placeholder="填写标题，可不填写，默认使用题目内容的简略信息" type="text"
                                        class="form-control">
                             </div>
                         </div>
@@ -147,6 +146,15 @@
                                     <label class="checkbox-inline i-checks">
                                         <input th:checked="${problemData?.isExistCompile('C++')}" type="checkbox"
                                                value="C++"> C++</label>
+                                    <label class="checkbox-inline i-checks">
+                                        <input th:checked="${problemData?.isExistCompile('DEV_C')}" type="checkbox"
+                                               value="DEV_C"> DEV_C</label>
+                                    <label class="checkbox-inline i-checks">
+                                        <input th:checked="${problemData?.isExistCompile('DEV_C++')}" type="checkbox"
+                                               value="DEV_C++"> DEV_C++</label>
+                                    <label class="checkbox-inline i-checks">
+                                        <input th:checked="${problemData?.isExistCompile('Pascal')}" type="checkbox"
+                                               value="Pascal"> Pascal</label>
                                     <label class="checkbox-inline i-checks">
                                         <input th:checked="${problemData?.isExistCompile('Java')}" type="checkbox"
                                                value="Java"> Java</label>
@@ -261,7 +269,6 @@
         </div>
     </div>
 </div>
-
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>

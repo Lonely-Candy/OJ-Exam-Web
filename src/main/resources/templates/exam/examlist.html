@@ -9,6 +9,9 @@
     <link th:href="@{/hAdmin/css/font-awesome.min.css?v=4.4.0}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <!-- Sweet Alert -->
+    <link th:href="@{/hAdmin/css/plugins/sweetalert/sweetalert.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/toastr/toastr.min.css}" rel="stylesheet">
 </head>
 <body>
 <div class="container">
@@ -59,9 +62,9 @@
                                         <dl class="dl-horizontal">
                                             <dt>状态：</dt>
                                             <dd>
-                                                <span th:if="${exam.flag == 1}"
-                                                      class="label label-primary">进行中...</span>
-                                                <span th:if="${exam.flag != 1}" class="label">未开启</span>
+                                                <span th:class="${exam.flag == 1 ? 'label label-primary' : 'label'}">
+                                                    [[${exam.flag == 1 ? '进行中...' : '未开启'}]]
+                                                </span>
                                             </dd>
                                         </dl>
                                     </div>
@@ -76,27 +79,25 @@
                                             <dd>[[${exam.length}]] mins</dd>
                                             <dt>是否开启监控</dt>
                                             <dd>[[${exam.isCheck == 1 ? '是' : '否'}]]</dd>
-                                            <dd>
-                                                <a th:if="${!#session.getAttribute('isAdmin') && exam.flag == 1}"
+                                            <dd th:if="${!#session.getAttribute('isAdmin')}">
+                                                <a th:disabled="${exam.flag != 1}"
                                                    type="button" class="btn btn-success"
-                                                   th:href="@{/exam/questionSet/problemlist.html}">
+                                                   th:href="@{'/student/beginExam/' + ${exam.id}}">
                                                     <em class="glyphicon glyphicon-align-left"></em> 开始考试
                                                 </a>
-                                                <a disabled="disabled"
-                                                   th:if="${!#session.getAttribute('isAdmin') && exam.flag != 1}"
-                                                   type="button" class="btn btn-success">
-                                                    <em class="glyphicon glyphicon-align-left"></em> 开始考试
-                                                </a>
-                                                <a th:href="@{/exam/questionSet/problemlist.html}"
-                                                   th:if="${#session.getAttribute('isAdmin')}"
+                                            </dd>
+                                            <dd th:if="${#session.getAttribute('isAdmin')}">
+                                                <a th:href="@{'/exam/toProblemList/' + ${exam.id}}"
                                                    class="btn btn-primary" type="button">
                                                     <em class="glyphicon glyphicon-align-left"></em> 编辑考试
                                                 </a>
-                                                <a th:if="${#session.getAttribute('isAdmin') && exam.flag == 1}"
-                                                   class="btn btn-info" type="button">
-                                                    <em class="glyphicon glyphicon-align-center"></em> 停止考试
+                                                <a th:class="${exam.flag == 1 || exam.flag == -1 ? 'btn btn-warning' : 'btn btn-info'}"
+                                                   th:href="@{'/exam/changeState/' + ${exam.id} + '?state=' + ${exam.flag == 1 || exam.flag == -1 ? 'finish' : 'open'}}"
+                                                   type="button">
+                                                    <em class="glyphicon glyphicon-align-center"></em>
+                                                    [[${exam.flag == 1 || exam.flag == -1 ? '停止考试': '开启考试'}]]
                                                 </a>
-                                                <a th:if="${#session.getAttribute('isAdmin')}" class="btn btn-danger"
+                                                <a th:onclick="'delExam(' + ${exam.id} + ')'" class="btn btn-danger"
                                                    type="button">
                                                     <em class="glyphicon glyphicon-align-right"></em> 删除考试
                                                 </a>
@@ -116,9 +117,53 @@
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
-
+<!-- Sweet alert -->
+<script th:src="@{/hAdmin/js/plugins/sweetalert/sweetalert.min.js}"></script>
 <!-- 自定义js -->
 <script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
+<!-- Toastr script -->
+<script th:src="@{/hAdmin/js/plugins/toastr/toastr.min.js}"></script>
 
+<script th:inline="javascript">
+    const delExam = function (examId) {
+        swal({
+                title: "您确定要删除该考试吗",
+                text: "删除后将无法恢复，请谨慎操作！",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "是的，我要删除！",
+                cancelButtonText: "让我再考虑一下…",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.get('/exam/delExam/' + examId, function (data, status) {
+                        if (status == 'success') {
+                            if (data.code == 777) {
+                                swal({title: "删除成功", type: 'success'}, function () {
+                                    history.go(0);
+                                });
+                            } else {
+                                swal("删除失败", data.message, 'warning');
+                            }
+                        } else {
+                            swal("服务器异常", "请联系管理员", 'error');
+                        }
+                    })
+                } else {
+                    swal("已取消", "您取消了删除操作！", "error");
+                }
+            });
+    }
+
+    $(document).ready(function () {
+        let message = [[${param?.message}]];
+        if (message != null && message[0] == "exam_isSubmit") {
+            toastr.warning('', '你已经提交考试');
+        }
+    });
+</script>
 </body>
 </html>

@@ -3,14 +3,11 @@ package com.smxy.exam.beans;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>
@@ -51,12 +48,12 @@ public class ExamRecord implements Serializable {
     /**
      * 进入考试时间
      */
-    private LocalDateTime beginTime;
+    private Date beginTime;
 
     /**
      * 提交考试时间
      */
-    private LocalDateTime submitTime;
+    private Date submitTime;
 
     /**
      * 得分

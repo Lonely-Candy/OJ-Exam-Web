@@ -1,34 +1,56 @@
 package com.smxy.exam.controller;
 
-import com.smxy.exam.beans.Admin;
-import com.smxy.exam.beans.Exam;
-import com.smxy.exam.service.impl.ExamServiceImpl;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.smxy.exam.beans.*;
+import com.smxy.exam.service.*;
+import com.smxy.exam.util.ResultDataUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import javax.websocket.server.PathParam;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * 考试处理器
  *
  * @author 范颂扬
- * @create 2022-02-23 19:14
+ * @create 2022-04-21 16:59
  */
 @Controller
+@RequestMapping("/exam")
 public class ExamController {
 
-    private ExamServiceImpl examService;
+    private IExamService examService;
+
+    private IExamProcedureProblemService examProcedureProblemService;
+
+    private IExamProcedureStatusService examProcedureStatusService;
+
+    private IExamCompletionProblemService examCompletionProblemService;
+
+    private IExamCompletionStatusService examCompletionStatusService;
+
+    @Autowired
+    public ExamController(IExamService examService, IExamProcedureProblemService examProcedureProblemService
+            , IExamProcedureStatusService examProcedureStatusService, IExamCompletionStatusService examCompletionStatusService
+            , IExamCompletionProblemService examCompletionProblemService) {
+        this.examService = examService;
+        this.examProcedureProblemService = examProcedureProblemService;
+        this.examCompletionProblemService = examCompletionProblemService;
+        this.examProcedureStatusService = examProcedureStatusService;
+        this.examCompletionStatusService = examCompletionStatusService;
+    }
 
     /**
      * 封装考试对象，用于界面解析
@@ -88,11 +110,6 @@ public class ExamController {
         }
     }
 
-    @Autowired
-    public ExamController(ExamServiceImpl examService) {
-        this.examService = examService;
-    }
-
     /**
      * 获取所有的考试列表
      *
@@ -101,7 +118,7 @@ public class ExamController {
      * @author 范颂扬
      * @date 2022-02-23 19:15
      */
-    @GetMapping("/examlist")
+    @GetMapping("/examList")
     public String getExamList(Model model) {
         List<Exam> examList = examService.list();
         // 转换封装类
@@ -169,6 +186,59 @@ public class ExamController {
         Exam exam = examService.getById(id);
         model.addAttribute("exam", new ProcessExamBean(exam));
         return "exam/addExam";
+    }
+
+    /**
+     * 删除考试
+     *
+     * @param examId
+     * @return com.smxy.exam.beans.ResultData
+     * @author 范颂扬
+     * @date 2022-04-21 17:30
+     */
+    @ResponseBody
+    @Transactional(rollbackFor = {Exception.class})
+    @GetMapping("/delExam/{examId}")
+    public ResultData delExam(@PathVariable("examId") Integer examId) {
+        // 删除考试
+        boolean res = examService.removeById(examId);
+        // 删除考试对应学生提交记录
+        Wrapper<ExamProcedureStatus> procedureStatusQueryWrapper = new QueryWrapper<ExamProcedureStatus>()
+                .eq("exam_id", examId);
+        Wrapper<ExamCompletionStatus> completionStatusQueryWrapper = new QueryWrapper<ExamCompletionStatus>()
+                .eq("exam_id", examId);
+        examProcedureStatusService.remove(procedureStatusQueryWrapper);
+        examCompletionStatusService.remove(completionStatusQueryWrapper);
+        // 删除考试对应的题目
+        Wrapper<ExamProcedureProblem> procedureProblemQueryWrapper = new QueryWrapper<ExamProcedureProblem>()
+                .eq("exam_id", examId);
+        Wrapper<ExamCompletionProblem> completionProblemQueryWrapper = new QueryWrapper<ExamCompletionProblem>()
+                .eq("exam_id", examId);
+        examProcedureProblemService.remove(procedureProblemQueryWrapper);
+        examCompletionProblemService.remove(completionProblemQueryWrapper);
+        return res ? ResultDataUtil.success() : ResultDataUtil.error(666, "删除失败");
+    }
+
+    /**
+     * 手动改变考试状态
+     *
+     * @param examId
+     * @param state
+     * @return com.smxy.exam.beans.ResultData
+     * @author 范颂扬
+     * @date 2022-04-21 17:38
+     */
+    @GetMapping("/changeState/{examId}")
+    public String stopExam(@PathVariable("examId") Integer examId, @PathParam("state") String state) {
+        // 关闭考试
+        if ("finish".equals(state)) {
+             examService.updateById(new Exam().setId(examId).setFlag(0));
+        }
+        // 开启考试
+        if ("open".equals(state)) {
+            examService.updateById(new Exam().setId(examId).setFlag(1));
+        }
+        return "redirect:/examList";
     }
 
 }

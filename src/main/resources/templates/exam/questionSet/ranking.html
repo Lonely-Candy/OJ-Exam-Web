@@ -88,7 +88,7 @@
         <!-- 详细内容展示 -->
         <main style="margin-top: 10px" role="main" class="col align-self-center">
             <!-- 引入考试相关导航 -->
-            <div th:replace="~{navigation/examNav :: examNav('ranking')}"></div>
+            <div th:replace="~{navigation/examNav :: examNav('ranking', ${examId})}"></div>
             <!-- 搜索栏 -->
             <div class="ibox-content">
                 <form style="margin-top: 10px" role="form" class="form-inline">

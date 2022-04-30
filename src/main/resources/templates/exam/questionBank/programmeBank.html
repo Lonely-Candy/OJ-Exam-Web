@@ -106,20 +106,20 @@
                                     <ul class="pagination justify-content-center">
                                         <li th:class="${problemData.hasPrevious() ? 'page-item' : 'page-item disabled'}">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 1}}"
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=programme'}"
                                                aria-label="Previous">
                                                 <span aria-hidden="true">&laquo;</span>
                                             </a>
                                         </li>
                                         <li th:if="${problemData.getCurrent() - 2 > 0}" class="page-item">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 2}}">
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 2} + '?type=programme'}">
                                                 [[problemData.getCurrent() - 2]]
                                             </a>
                                         </li>
                                         <li th:if="${problemData.hasPrevious()}" class="page-item">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() - 1}}">
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=programme'}">
                                                 [[${problemData.getCurrent() - 1}]]</a>
                                         </li>
                                         <li class="page-item active">
@@ -127,20 +127,20 @@
                                         </li>
                                         <li th:if="${problemData.hasNext()}" class="page-item">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 1}}">
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 1} + '?type=programme'}">
                                                 [[${problemData.getCurrent() + 1}]]
                                             </a>
                                         </li>
                                         <li th:if="${problemData.getCurrent() + 2 <= problemData.getPages()}"
                                             class="page-item">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 2}}">
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 2} + '?type=programme'}">
                                                 [[problemData.getCurrent() + 2]]
                                             </a>
                                         </li>
                                         <li th:class="${problemData.hasNext() ? 'page-item' : 'page-item disabled'}">
                                             <a class="page-link"
-                                               th:href="@{'/getAllCompletion/' + ${problemData.getCurrent() + 2}}"
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 2} + '?type=programme'}"
                                                aria-label="Next">
                                                 <span aria-hidden="true">&raquo;</span>
                                             </a>
@@ -198,11 +198,10 @@
     const showProblem = function (proId) {
         $.get("/getProblem/" + proId + "?type=programme", function (data, status) {
             if (status == "success") {
-                console.log(data.data);
                 if (data.code == 777) {
                     let resultData = data.data;
                     $("#pro_id").attr("value", resultData.id);
-                    $("#pro_title").text("填空题");
+                    $("#pro_title").text("编程填空题");
                     $("#pro_explain").text(resultData.adminid + " 创建于 " + resultData.time);
                     $("#pro_context").html(resultData.replaceContext)
                         .attr("blankSum", resultData.blankSum);

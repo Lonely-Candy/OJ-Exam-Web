@@ -35,7 +35,7 @@ public class ExamCompletionProblem implements Serializable {
     private Integer examId;
 
     /**
-     * 考试题号
+     * 题目ID
      */
     private Integer problemId;
 
@@ -45,9 +45,8 @@ public class ExamCompletionProblem implements Serializable {
     private Integer problemNum;
 
     /**
-     * 题干
+     * 分数
      */
-    private String content;
-
+    private String score;
 
 }

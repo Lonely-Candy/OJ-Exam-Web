@@ -3,6 +3,7 @@ package com.smxy.exam.beans;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.io.Serializable;
 
 import lombok.Data;
@@ -13,7 +14,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author fsy
@@ -38,19 +39,14 @@ public class ExamProcedureProblem implements Serializable {
     private Integer examId;
 
     /**
-     * 考试题号
+     * 题目ID
      */
-    private String problemId;
+    private Integer problemId;
 
     /**
      * 题目题号
      */
     private Integer problemNum;
-
-    /**
-     * 题目名字
-     */
-    private String problemTitle;
 
     /**
      * 提交正确人数
@@ -61,6 +57,11 @@ public class ExamProcedureProblem implements Serializable {
      * 总提交次数
      */
     private Integer submitSum;
+
+    /**
+     * 分数
+     */
+    private String score;
 
 
 }
