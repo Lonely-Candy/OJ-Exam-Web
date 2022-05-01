@@ -42,9 +42,14 @@ public class ExamProcedureStatus implements Serializable {
     private Integer examId;
 
     /**
-     * 题号
+     * 题库中对应的题目ID
      */
     private Integer problemId;
+
+    /**
+     * 题目ID
+     */
+    private Integer problemNum;
 
     /**
      * 测试数据ID

@@ -259,8 +259,9 @@ public class StudentExamController {
             String[] scores = programmeProblem.getScore().split("#");
             for (int j = 0; j < compilers.length; j++) {
                 for (int z = 0; z < scores.length; z++) {
-                    procedureStatuses.add(new ExamProcedureStatus().setUserId(userData.getUserid())
-                            .setCaseTestDataId(z).setExamId(submitData.getExamId()).setSource(source)
+                    procedureStatuses.add(new ExamProcedureStatus().setProblemNum(i + 1)
+                            .setUserId(userData.getUserid()).setCaseTestDataId(z)
+                            .setExamId(submitData.getExamId()).setSource(source)
                             .setProblemId(programmeProblem.getId()).setAnswer(answer)
                             .setCompiler(compilers[j]).setCodeLength(source.length())
                             .setSubmitTime(LocalDateTime.now()));

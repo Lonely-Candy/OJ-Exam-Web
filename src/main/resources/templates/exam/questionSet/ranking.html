@@ -119,85 +119,26 @@
                     <tr>
                         <th scope="col">排名</th>
                         <th scope="col">用户</th>
-                        <th scope="col">通过数</th>
-                        <th scope="col">罚时</th>
-                        <th scope="col">L1-1</th>
-                        <th scope="col">L1-2</th>
-                        <th scope="col">L1-3</th>
-                        <th scope="col">L1-4</th>
-                        <th scope="col">L2-1</th>
-                        <th scope="col">L2-2</th>
-                        <th scope="col">L2-3</th>
-                        <th scope="col">L2-4</th>
+                        <th scope="col">填空题得分</th>
+                        <th scope="col">编程填空题得分</th>
                         <th>总分</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>1</td>
+                    <tr th:each="ranking, rankingStat:${rankingListData}">
+                        <td>[[${rankingStat.count}]]</td>
+                        <td>[[${ranking.userId}]] [[${ranking.userName}]]</td>
                         <td>
-                            <a href="#">20180865114 范颂扬</a>
-                        </td>
-                        <td>8</td>
-                        <td>2721</td>
-                        <td>
-                            <a type="button" data-toggle="modal" data-target="#showProblemModal">5</a>
+                            <a type="button" data-toggle="modal" data-target="#showProblemModal">
+                                [[${ranking.completionTotalScore}]]
+                            </a>
                         </td>
                         <td>
-                            <a href="#">5</a>
+                            <a type="button" data-toggle="modal" data-target="#showProblemModal">
+                                [[${ranking.programmeTotalScore}]]
+                            </a>
                         </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>40</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>
-                            <a href="#">20180865127 程涵</a>
-                        </td>
-                        <td>8</td>
-                        <td>3324</td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>
-                            <a href="#">5</a>
-                        </td>
-                        <td>40</td>
+                        <td>[[${ranking.totalScore}]]</td>
                     </tr>
                     </tbody>
                 </table>

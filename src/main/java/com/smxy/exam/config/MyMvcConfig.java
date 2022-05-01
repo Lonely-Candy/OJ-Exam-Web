@@ -34,11 +34,6 @@ public class MyMvcConfig {
                 registry.addViewController("/login.html").setViewName("login");
                 registry.addViewController("/main.html").setViewName("main");
                 registry.addViewController("/exam/addExam.html").setViewName("exam/addExam");
-                registry.addViewController("/exam/examlist.html").setViewName("exam/examlist");
-                registry.addViewController("/exam/questionSet/content.html").setViewName("exam/questionSet/content");
-                registry.addViewController("/exam/questionSet/ranking.html").setViewName("exam/questionSet/ranking");
-                registry.addViewController("/exam/questionSet/studentlist.html").setViewName("exam/questionSet/studentlist");
-                registry.addViewController("/exam/questionSet/submitCondition.html").setViewName("exam/questionSet/submitCondition");
                 registry.addViewController("/exam/questionBank/addQuestion.html").setViewName("exam/questionBank/addQuestion");
             }
 

@@ -63,7 +63,7 @@
         <!-- 详细内容展示 -->
         <main style="margin-top: 10px" role="main" class="col align-self-center">
             <!-- 引入考试相关导航 -->
-            <div th:replace="~{navigation/examNav :: examNav('studentlist')}"></div>
+            <div th:replace="~{navigation/examNav :: examNav('studentlist', ${examId})}"></div>
             <!-- 搜索栏 -->
             <div class="ibox-content">
                 <form style="margin-top: 10px" role="form" class="form-inline">
@@ -98,19 +98,10 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>
-                            <a href="#">20180865114 范颂扬</a>
-                        </td>
-                        <td>2022-03-11 16:00:00</td>
-                        <td>2022-03-11 17:00:00</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <a href="#">20180865127 程涵</a>
-                        </td>
-                        <td>2022-03-11 16:00:00</td>
-                        <td>2022-03-11 17:00:00</td>
+                    <tr th:each="record:${examRecords}">
+                        <td>[[${record.userId}]] [[${record.userName}]]</td>
+                        <td>[[${#dates.listFormat(record.beginTime, 'yyyy-MM-dd HH:mm:ss')}]]</td>
+                        <td>[[${#dates.listFormat(record.submitTime, 'yyyy-MM-dd HH:mm:ss')}]]</td>
                     </tr>
                     </tbody>
                 </table>
