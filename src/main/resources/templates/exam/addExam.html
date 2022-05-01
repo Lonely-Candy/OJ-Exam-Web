@@ -40,7 +40,7 @@
     <div class="row">
         <!-- 添加考试表单 -->
         <main style="margin-top: 10px" role="main" class="col align-self-center">
-            <form th:action="${exam != null ? '/editExam':'/addExam'}" method="post">
+            <form th:action="${exam != null ? '/exam/editExam':'/exam/addExam'}" method="post">
                 <input type="hidden" th:value="${exam != null ? exam.id : ''}">
                 <div class="form-group">
                     <label for="exampleInputTitle">考试标题</label>

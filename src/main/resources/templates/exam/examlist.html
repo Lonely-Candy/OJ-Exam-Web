@@ -91,11 +91,9 @@
                                                    class="btn btn-primary" type="button">
                                                     <em class="glyphicon glyphicon-align-left"></em> 编辑考试
                                                 </a>
-                                                <a th:class="${exam.flag == 1 || exam.flag == -1 ? 'btn btn-warning' : 'btn btn-info'}"
-                                                   th:href="@{'/exam/changeState/' + ${exam.id} + '?state=' + ${exam.flag == 1 || exam.flag == -1 ? 'finish' : 'open'}}"
-                                                   type="button">
-                                                    <em class="glyphicon glyphicon-align-center"></em>
-                                                    [[${exam.flag == 1 || exam.flag == -1 ? '停止考试': '开启考试'}]]
+                                                <a th:if="${exam.flag == 1}" class="btn btn-warning"
+                                                   th:href="@{'/exam/changeState/' + ${exam.id}}" type="button">
+                                                    <em class="glyphicon glyphicon-align-center"></em> 停止考试
                                                 </a>
                                                 <a th:onclick="'delExam(' + ${exam.id} + ')'" class="btn btn-danger"
                                                    type="button">
@@ -123,7 +121,6 @@
 <script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
 <!-- Toastr script -->
 <script th:src="@{/hAdmin/js/plugins/toastr/toastr.min.js}"></script>
-
 <script th:inline="javascript">
     const delExam = function (examId) {
         swal({

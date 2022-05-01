@@ -1,12 +1,12 @@
-package com.smxy.exam.service.impl;
+package com.smxy.exam.service.async.impl;
 
 import com.smxy.exam.beans.ExamCompletionStatus;
 import com.smxy.exam.beans.ExamProcedureStatus;
 import com.smxy.exam.beans.RunRecord;
 import com.smxy.exam.beans.User;
 import com.smxy.exam.controller.ProblemBankController;
-import com.smxy.exam.service.ExamJudgeAsyncService;
-import com.smxy.exam.service.ExamRunCodeAsyncService;
+import com.smxy.exam.service.async.ExamJudgeAsyncService;
+import com.smxy.exam.service.async.ExamRunCodeAsyncService;
 import com.smxy.exam.service.IExamCompletionStatusService;
 import com.smxy.exam.util.CodeRunJudgeUtil;
 import com.smxy.exam.util.CompletionJudgeUtil;

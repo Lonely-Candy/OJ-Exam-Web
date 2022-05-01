@@ -1,21 +1,45 @@
-# 数据库配置
-spring:
-  datasource:
-    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
-    url: jdbc:p6spy:mysql://localhost:3307/smuoj
-    username: root
-    password: fsy123
-  thymeleaf:
-    cache: false
-#配置项目热部署
-  devtools:
-    restart:
-      enabled: true
 # 服务器相关配置
 server:
   port: 8733
+# 指定运行环境
+spring:
+  # 关闭缓存
+  thymeleaf:
+    cache: false
+  #配置项目热部署
+  devtools:
+    restart:
+      enabled: true
+  # 配置运行环境
+  profiles:
+    active: dev
 # 日志配置
 logging:
   level:
     com.baomidou.mybatisplus.samples: debug
   config: classpath:log4j2.yml
+
+# 开发环境
+---
+spring:
+  # 数据库配置
+  datasource:
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    url: jdbc:p6spy:mysql://localhost:3307/smuoj
+    username: root
+    password: fsy123
+  config:
+    activate:
+      on-profile: dev
+
+# 生成环境
+---
+spring:
+  datasource:
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    url: jdbc:p6spy:mysql://localhost:3306/smuoj
+    username: root
+    password: 671354
+  config:
+    activate:
+      on-profile: prod

@@ -1,4 +1,4 @@
-package com.smxy.exam.service;
+package com.smxy.exam.service.async;
 
 import com.smxy.exam.beans.ExamCompletionStatus;
 import com.smxy.exam.beans.ExamProcedureStatus;

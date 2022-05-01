@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.smxy.exam.beans.*;
 import com.smxy.exam.service.*;
+import com.smxy.exam.service.async.ExamAsyncService;
 import com.smxy.exam.util.ResultDataUtil;
 import com.smxy.exam.util.StringUtil;
 import lombok.Data;

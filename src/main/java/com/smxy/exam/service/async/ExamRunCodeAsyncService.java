@@ -1,4 +1,4 @@
-package com.smxy.exam.service;
+package com.smxy.exam.service.async;
 
 import java.util.concurrent.Future;
 

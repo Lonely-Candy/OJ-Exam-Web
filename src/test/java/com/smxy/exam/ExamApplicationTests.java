@@ -130,10 +130,15 @@ class ExamApplicationTests {
 //        for (int i = 0; i < records.size(); i++) {
 //            System.out.println(records.get(i));
 //        }
-        Wrapper<ExamProcedureStatus> programmeQueryWrapper = new QueryWrapper<ExamProcedureStatus>().eq("exam_id", 1)
-                .select("user_id, problem_id, case_test_data_id, max(score) as score")
-                .groupBy("user_id","problem_id", "case_test_data_id");
+        Wrapper<ExamProcedureStatus> programmeQueryWrapper = new QueryWrapper<ExamProcedureStatus>()
+                .eq("exam_id", 1).eq("user_id", "20180865114")
+                .select("problem_id, case_test_data_id, max(score) as score")
+                .groupBy("problem_id", "case_test_data_id");
+        Wrapper<ExamCompletionStatus> completionQueryWrapper = new QueryWrapper<ExamCompletionStatus>()
+                .eq("exam_id", 1).eq("user_id", "20180865114").select("sum(score) as score");
         List<ExamProcedureStatus> procedureStatuses = examProcedureStatusService.list(programmeQueryWrapper);
+        ExamCompletionStatus completionStatuses = examCompletionStatusService.getOne(completionQueryWrapper);
+        System.out.println(completionStatuses);
         for (ExamProcedureStatus procedureStatus : procedureStatuses) {
             System.out.println(procedureStatus);
         }

@@ -1,4 +1,4 @@
-package com.smxy.exam.service.impl;
+package com.smxy.exam.service.async.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -9,13 +9,14 @@ import com.smxy.exam.beans.ExamRecord;
 import com.smxy.exam.beans.User;
 import com.smxy.exam.controller.ProblemBankController;
 import com.smxy.exam.service.*;
+import com.smxy.exam.service.async.ExamAsyncService;
+import com.smxy.exam.service.async.ExamJudgeAsyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;

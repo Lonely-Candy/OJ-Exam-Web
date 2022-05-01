@@ -3,6 +3,7 @@ package com.smxy.exam.controller;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.smxy.exam.beans.*;
+import com.smxy.exam.config.StarJobInit;
 import com.smxy.exam.service.*;
 import com.smxy.exam.util.ResultDataUtil;
 import lombok.Data;
@@ -154,12 +155,14 @@ public class ExamController {
         String author = userData.getAdminid();
         // 2. 处理时间数据
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String times[] = datetimes.split(" - ");
+        String[] times = datetimes.split(" - ");
         LocalDateTime beginTime = LocalDateTime.parse(times[0], df);
         LocalDateTime endTime = LocalDateTime.parse(times[1], df);
+        LocalDateTime nowTime = LocalDateTime.now();
+        int flag = (nowTime.compareTo(endTime) > 0) ? 0 : (nowTime.compareTo(beginTime) < 0 ? -1 : 1);
         // 4. 创建对象
         Exam exam = new Exam().setAuthor(author).setIsCheck(isCheck.equals("on") ? 1 : -1)
-                .setTitle(title).setBeginTime(beginTime).setEndTime(endTime).setFlag(-1)
+                .setTitle(title).setBeginTime(beginTime).setEndTime(endTime).setFlag(flag)
                 .setLength(length);
         // 5. 执行操作
         boolean res = examService.saveOrUpdate(exam);
@@ -169,7 +172,12 @@ public class ExamController {
             return "exam/addExam";
         }
         // 7. 数据插入成功
-        return "redirect:/examlist";
+        if (flag != 0) {
+            synchronized (StarJobInit.examMap) {
+                StarJobInit.examMap.put(exam.getId(), exam);
+            }
+        }
+        return "redirect:/exam/examList";
     }
 
     /**
@@ -223,21 +231,14 @@ public class ExamController {
      * 手动改变考试状态
      *
      * @param examId
-     * @param state
      * @return com.smxy.exam.beans.ResultData
      * @author 范颂扬
      * @date 2022-04-21 17:38
      */
     @GetMapping("/changeState/{examId}")
-    public String stopExam(@PathVariable("examId") Integer examId, @PathParam("state") String state) {
+    public String stopExam(@PathVariable("examId") Integer examId) {
         // 关闭考试
-        if ("finish".equals(state)) {
-             examService.updateById(new Exam().setId(examId).setFlag(0));
-        }
-        // 开启考试
-        if ("open".equals(state)) {
-            examService.updateById(new Exam().setId(examId).setFlag(1));
-        }
+        examService.updateById(new Exam().setId(examId).setFlag(0));
         return "redirect:/examList";
     }
 
