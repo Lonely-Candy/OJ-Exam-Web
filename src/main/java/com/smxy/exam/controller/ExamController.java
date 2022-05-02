@@ -128,7 +128,7 @@ public class ExamController {
             ProcessExamBean examBean = new ProcessExamBean(exam);
             exams.add(examBean);
         }
-        model.addAttribute("exams", exams);
+        model.addAttribute("exams", exams == null ? new ArrayList<>() : exams);
         return "/exam/examlist";
     }
 

@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.smxy</groupId>
     <artifactId>exam</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-beta</version>
     <name>exam</name>
     <description>Online Judge project for Spring Boot</description>
     <properties>

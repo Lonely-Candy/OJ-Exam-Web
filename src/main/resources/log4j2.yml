@@ -26,6 +26,8 @@ Configuration:
         value: exam
       - name: log.pattern
         value: "%d{yyyy-MM-dd HH:mm:ss.SSS} -%5p ${PID:-} [%15.15t] %-30.30C{1.} : %m%n"
+      - name: encoding
+        value: "UTF-8"
   # 日志输出的相关配置
   Appenders:
     # 输出到控制台
@@ -36,6 +38,7 @@ Configuration:
       target: SYSTEM_OUT
       # 输出格式，不设置默认为:%m%n.
       PatternLayout:
+        charset: ${encoding}
         pattern: ${log.pattern}
     # 定义超过指定大小自动删除旧的创建新的的 Appender
     RollingFile:
@@ -47,6 +50,7 @@ Configuration:
         filePattern: "${log.path}/${log.file.name}/$${date:yyyy-MM}/${project.name}-%d{yyyy-MM-dd}-%i.log.gz"
         # 输出格式，不设置默认为:%m%n.
         PatternLayout:
+          charset: ${encoding}
           pattern: ${log.pattern}
         # 决定日志事件能否被输出。
         # 过滤条件有三个值：ACCEPT(接受), DENY(拒绝) or NEUTRAL(中立）
@@ -84,6 +88,7 @@ Configuration:
         fileName: ${log.path}/business/${project.name}_bussiness.log
         filePattern: "${log.path}/${log.file.name}/business/$${date:yyyy-MM}/${project.name}-%d{yyyy-MM-dd}-%i.log.gz"
         PatternLayout:
+          charset: ${encoding}
           pattern: ${log.pattern}
         Policies:
           # 按天分类
@@ -103,6 +108,7 @@ Configuration:
           onMatch: ACCEPT
           onMismatch: DENY
         PatternLayout:
+          charset: ${encoding}
           pattern: ${log.pattern}
         Policies:
           # 按天分类
@@ -122,6 +128,7 @@ Configuration:
           onMatch: ACCEPT
           onMismatch: DENY
         PatternLayout:
+          charset: ${encoding}
           pattern: ${log.pattern}
         Policies:
           # 按天分类
