@@ -1,13 +1,12 @@
 package com.smxy.exam.beans;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * <p>
@@ -29,9 +28,9 @@ public class Admin implements Serializable {
     private String password;
 
     @TableField(value = "registerTime")
-    private LocalDateTime registerTime;
+    private Date registerTime;
 
-    private LocalDateTime lasttime;
+    private Date lasttime;
 
     private String rank;
 

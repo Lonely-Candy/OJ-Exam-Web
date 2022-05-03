@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * <p>
@@ -41,9 +42,9 @@ public class User implements Serializable {
 
     private Integer solved;
 
-    private LocalDateTime registertime;
+    private Date registertime;
 
-    private LocalDateTime lasttime;
+    private Date lasttime;
 
     private String name;
 
@@ -61,7 +62,7 @@ public class User implements Serializable {
 
     private Integer raptorSolved;
 
-    private LocalDateTime archiveTime;
+    private Date archiveTime;
 
     private String ip;
 
