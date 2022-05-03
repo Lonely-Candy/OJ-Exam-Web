@@ -220,7 +220,7 @@ public class ExamProblemController {
         model.addAttribute("programmeProblems", programmeProblems);
         model.addAttribute("completionProblemScores", completionProblemScores);
         model.addAttribute("programmeProblemScores", programmeProblemScores);
-        return "/exam/questionSet/problemlist";
+        return "exam/questionSet/problemlist";
     }
 
     /**
@@ -323,7 +323,7 @@ public class ExamProblemController {
         List<ProblemStateListData> problemStateListDataList = getProblemStateListData(userIdStatusMap);
         model.addAttribute("examId", examId);
         model.addAttribute("problemStates", problemStateListDataList);
-        return "/exam/questionSet/submitCondition";
+        return "exam/questionSet/submitCondition";
     }
 
     /**
@@ -383,7 +383,7 @@ public class ExamProblemController {
         List<ExamRecord> examRecords = examRecordService.list(queryWrapper);
         model.addAttribute("examId", examId);
         model.addAttribute("examRecords", examRecords);
-        return "/exam/questionSet/studentlist";
+        return "exam/questionSet/studentlist";
     }
 
     /**

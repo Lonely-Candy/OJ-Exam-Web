@@ -273,11 +273,11 @@ public class ProblemBankController {
             this.adminid = examProcedureBank.getAdminid();
             this.compilers = examProcedureBank.getCompile();
             // 计算总分
-            String[] scores = score.split("#");
+            String[] scores = score == null ? new String[answer.split("#").length] : score.split("#");
             this.blankSum = scores.length;
             double totalPoints = 0d;
             for (int i = 0; i < scores.length; i++) {
-                totalPoints += Double.parseDouble(scores[i]);
+                totalPoints += Double.parseDouble(scores[i] == null ? "0" : scores[i]);
             }
             this.totalPoints = StringUtil.getNumberNoInvalidZero(totalPoints);
             // 替换内容
@@ -309,7 +309,7 @@ public class ProblemBankController {
                         + (index++) + "\" class=\"input-answer input-group m-b\"></span>");
             }
             String[] answers = answer.split("#");
-            String[] scores = score.split("#");
+            String[] scores = score == null ? new String[answers.length] : score.split("#");
             Document document = Jsoup.parse(htmlText);
             // 关闭格式化
             document.outputSettings().indentAmount(0).prettyPrint(false);
@@ -523,7 +523,9 @@ public class ProblemBankController {
         }
         // 获取测试数据对应的分数
         ExamProcedureBank procedureProblem = examProcedureBankService.getById(proId);
-        String[] scores = procedureProblem.getScore().split("#");
+        String score = procedureProblem.getScore();
+        String[] scores = score == null ?
+                new String[procedureProblem.getAnswer().split("#").length] : score.split("#");
         TestData testData = new TestData().setInputData(inputData).setOutputData(outputData)
                 .setScores(scores).setSize(files.length);
         return ResultDataUtil.success(testData);

@@ -129,7 +129,7 @@ public class ExamController {
             exams.add(examBean);
         }
         model.addAttribute("exams", exams == null ? new ArrayList<>() : exams);
-        return "/exam/examlist";
+        return "exam/examlist";
     }
 
     /**

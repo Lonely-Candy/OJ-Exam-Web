@@ -89,7 +89,7 @@ public class StudentExamController {
             List<ProblemBankController.ProblemShowData>[] problemShowData = getProblemShowData(examId, false);
             model.addAttribute("programmeProblems", problemShowData[0]);
             model.addAttribute("completionProblems", problemShowData[1]);
-            return "/exam/student/problemlist";
+            return "exam/student/problemlist";
         }
         return "redirect:/exam/examList?message=exam_isSubmit";
     }
@@ -113,8 +113,14 @@ public class StudentExamController {
         List<Integer> procedureProblemIds = examProcedureProblemList.stream().map(ExamProcedureProblem::getProblemId).collect(Collectors.toList());
         List<Integer> completionProblemIds = examCompletionProblemList.stream().map(ExamCompletionProblem::getProblemId).collect(Collectors.toList());
         // 查询题库中的题目数据
-        List<ExamProcedureBank> procedures = procedureProblemIds != null ? examProcedureBankService.listByIds(procedureProblemIds) : null;
-        List<ExamCompletionBank> completions = examCompletionBankService.listByIds(completionProblemIds);
+        List<ExamCompletionBank> completions = new ArrayList<>();
+        List<ExamProcedureBank> procedures = new ArrayList<>();
+        if (procedureProblemIds != null && procedureProblemIds.size() != 0) {
+            procedures = examProcedureBankService.listByIds(procedureProblemIds);
+        }
+        if (completionProblemIds != null && completionProblemIds.size() != 0) {
+            completions = examCompletionBankService.listByIds(completionProblemIds);
+        }
         // 将考试中的题目ID和分数封装成 Map
         Map<Integer, String> procedureIdAndScoreMap = examProcedureProblemList.stream()
                 .collect(Collectors.toMap(ExamProcedureProblem::getProblemId, ExamProcedureProblem::getScore));
@@ -163,14 +169,21 @@ public class StudentExamController {
         List<ProblemBankController.ProblemShowData>[] problemShowData = getProblemShowData(submitData.examId, true);
         List<ProblemBankController.ProblemShowData> programmeProblems = problemShowData[0];
         List<ProblemBankController.ProblemShowData> completionProblems = problemShowData[1];
-        // 保存提交记录
-        List<ExamCompletionStatus> completionStatuses = saveCompletionSubmitRecord(userData, submitData, completionProblems);
-        if (completionStatuses == null) {
-            return ResultDataUtil.error(666, "保存填空题失败");
+        List<ExamCompletionStatus> completionStatuses = null;
+        // 填空题保存提交记录
+        if (completionProblems != null && completionProblems.size() != 0) {
+            completionStatuses = saveCompletionSubmitRecord(userData, submitData, completionProblems);
+            if (completionStatuses == null) {
+                return ResultDataUtil.error(666, "保存填空题失败");
+            }
         }
-        List<ExamProcedureStatus> procedureStatuses = saveProcedureSubmitRecord(userData, submitData, programmeProblems);
-        if (procedureStatuses == null) {
-            return ResultDataUtil.error(666, "保存编程填空题失败");
+        // 编程填题保存提交记录
+        List<ExamProcedureStatus> procedureStatuses = null;
+        if (programmeProblems != null && programmeProblems.size() != 0) {
+            procedureStatuses = saveProcedureSubmitRecord(userData, submitData, programmeProblems);
+            if (procedureStatuses == null) {
+                return ResultDataUtil.error(666, "保存编程填空题失败");
+            }
         }
         // 提交成功后，添加结束考试记录
         Wrapper<ExamRecord> queryWrapper = new UpdateWrapper<ExamRecord>().eq("exam_id", submitData.getExamId())

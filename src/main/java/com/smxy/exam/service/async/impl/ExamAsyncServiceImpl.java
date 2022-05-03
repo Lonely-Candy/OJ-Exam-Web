@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -65,9 +66,15 @@ public class ExamAsyncServiceImpl implements ExamAsyncService {
                         , ProblemBankController.ProblemShowData::getScore));
         // 线程执行结果集
         // 1. 填空题---判题处理(从线程池中启动线程进行处理)
-        Future<Boolean> future1 = examJudgeAsyncService.executeExamCompletionJudgeAsync(userData, completionStatuses, completionProblems);
+        Future<Boolean> future1 = new AsyncResult<>(true);
+        if (completionProblems != null && completionProblems.size() != 0) {
+            future1 = examJudgeAsyncService.executeExamCompletionJudgeAsync(userData, completionStatuses, completionProblems);
+        }
         // 2. 编程填空题---处理(从线程池中启动线程进行处理)
-        Future<Boolean> future2 = examJudgeAsyncService.executeExamProgrammeJudgeAsync(userData, procedureStatuses, proIdMapScores);
+        Future<Boolean> future2 = new AsyncResult<>(true);
+        if (programmeProblems != null && programmeProblems.size() != 0) {
+            future2 = examJudgeAsyncService.executeExamProgrammeJudgeAsync(userData, procedureStatuses, proIdMapScores);
+        }
         // 等待子线程处理结束
         boolean[] res = new boolean[2];
         while (true) {
@@ -90,7 +97,6 @@ public class ExamAsyncServiceImpl implements ExamAsyncService {
             calculateTotalScore(examId, userData.getUserid());
         }
     }
-
 
     /**
      * 计算总分

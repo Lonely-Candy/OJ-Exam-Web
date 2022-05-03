@@ -194,6 +194,9 @@
         let proContent = "#problem_content";
         let proTotalPoints = "#problem_totalPoints";
         let problemData = type == "completion" ? completionProblems : programmeProblems;
+        if (problemData == null || problemData.length == 0) {
+            return;
+        }
         // 设置显示内容
         $(proId).text(type.charAt(0).toUpperCase() + "-" + (index + 1));
         $(proAuthor).text("出题人: " + problemData[index].adminid);

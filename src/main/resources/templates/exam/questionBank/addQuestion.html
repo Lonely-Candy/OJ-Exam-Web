@@ -418,10 +418,12 @@
         }
         // 3. 处理测试数据
         let compiles = "";
-        for (let i = 0; i < compile.length - 1; i++) {
-            compiles += $(compile[i]).children("input").val() + "#";
+        if(compile != null) {
+            for (let i = 0; i < compile.length - 1; i++) {
+                compiles += $(compile[i]).children("input").val() + "#";
+            }
+            compiles += $(compile[compile.length - 1]).children("input").val();
         }
-        compiles += $(compile[compile.length - 1]).children("input").val();
         answers += $(uElements[uElements.length - 1]).text();
         if (type == "completion") {
             scores += $('#score_' + (uElements.length)).val();
@@ -625,7 +627,7 @@
         // 判断是否编辑跳转该页面，若是进行渲染
         if ([[${problemData != null}]]) {
             let scoreStr = [[${problemData?.score}]];
-            scores = scoreStr.split("#");
+            scores = scoreStr == null ? null : scoreStr.split("#");
             if ([[${type == 'completion'}]]) {
                 editor_completion.txt.html([[${problemData?.content}]]);
             }
@@ -633,8 +635,10 @@
                 editor_programme.txt.html([[${problemData?.content}]]);
             }
             preview([[${type}]]);
-            for (let i = 0; i < scores.length; i++) {
-                $("#score_" + (i + 1)).val(scores[i]);
+            if(scores != null) {
+                for (let i = 0; i < scores.length; i++) {
+                    $("#score_" + (i + 1)).val(scores[i]);
+                }
             }
             // 渲染测试数据
             if ([[${type == 'programme'}]]) {
