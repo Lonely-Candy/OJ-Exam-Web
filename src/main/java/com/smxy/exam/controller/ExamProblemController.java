@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.smxy.exam.beans.*;
+import com.smxy.exam.myenum.ProblemTypeEnum;
+import com.smxy.exam.myenum.ProgrammeResultEnum;
 import com.smxy.exam.service.*;
 import com.smxy.exam.util.ExamResultUtil;
 import com.smxy.exam.util.ResultDataUtil;
@@ -118,7 +120,9 @@ public class ExamProblemController {
             List<ExamProcedureBank> procedureBanks = examProcedureBankService.listByIds(Arrays.asList(programmes));
             // List 转 Map
             Map<Integer, String> procedureIdBothScoreMap = procedureBanks.stream()
-                    .collect(Collectors.toMap(ExamProcedureBank::getId, ExamProcedureBank::getScore));
+                    .collect(HashMap::new
+                            , (map, examProcedureBank) -> map.put(examProcedureBank.getId(), examProcedureBank.getScore())
+                            , HashMap::putAll);
             // 封装数据
             Collection<ExamProcedureProblem> procedureProblems = new ArrayList<>();
             for (int i = 0; i < programmes.length; i++) {
@@ -238,6 +242,21 @@ public class ExamProblemController {
         Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>()
                 .eq("exam_Id", examId);
         List<ExamProcedureStatus> examProcedureStatuses = examProcedureStatusService.list(queryWrapper);
+        List<ProblemStateListData> problemStateListDataList = getProblemStateListData(examProcedureStatuses);
+        model.addAttribute("examId", examId);
+        model.addAttribute("problemStates", problemStateListDataList);
+        return "exam/questionSet/submitCondition";
+    }
+
+    /**
+     * 处理获取到的编程填空题的记录
+     *
+     * @param examProcedureStatuses
+     * @return java.util.List<com.smxy.exam.controller.ExamProblemController.ProblemStateListData>
+     * @author 范颂扬
+     * @date 2022-05-10 17:50
+     */
+    private List<ProblemStateListData> getProblemStateListData(List<ExamProcedureStatus> examProcedureStatuses) {
         // 封装数据，将题号对应的多组测试数据使用键值对对应起来
         // Map<学号, Map<题目ID, Map<测试数据ID, List<状态>>>>
         // 注意：这里状态使用集合，是因为，可能存在测试数据使用不同的编译器得出的分数，选出来的最高分都是相同的。
@@ -321,9 +340,7 @@ public class ExamProblemController {
             userIdStatusMap.put(userId, proIdStatusMap);
         }
         List<ProblemStateListData> problemStateListDataList = getProblemStateListData(userIdStatusMap);
-        model.addAttribute("examId", examId);
-        model.addAttribute("problemStates", problemStateListDataList);
-        return "exam/questionSet/submitCondition";
+        return problemStateListDataList;
     }
 
     /**
@@ -400,17 +417,18 @@ public class ExamProblemController {
         // 1. 获取本场考试记录
         Wrapper<ExamRecord> recordQueryWrapper = new QueryWrapper<ExamRecord>().eq("exam_id", examId).isNotNull("submit_time");
         List<ExamRecord> examRecords = examRecordService.list(recordQueryWrapper);
-        // 1.1 获取键值对，key:学号 value:总分
-        Map<String, Float> userIdTotalMap = examRecords.stream().collect(Collectors.toMap(ExamRecord::getUserId, ExamRecord::getScore));
-        // 1.2 获取键值对，key:学号 value:姓名
+        // 1.1 获取键值对，key:学号 value:姓名
         Map<String, String> userIdUserNameMap = examRecords.stream().collect(Collectors.toMap(ExamRecord::getUserId, ExamRecord::getUserName));
-        // 2. 获取本场考试的所有填空题提交记录
+        // 2. 获取本场考试的所有提交记录(填空题)
         Wrapper<ExamCompletionStatus> completionStatusQueryWrapper = new QueryWrapper<ExamCompletionStatus>().eq("exam_id", examId);
         List<ExamCompletionStatus> completionStatuses = examCompletionStatusService.list(completionStatusQueryWrapper);
         // 2.1 获取键值对，key:学号 value:总分(填空题)
+        // 2.2 获取键值对，key:学号 value:记录(填空题)
         Map<String, Float> userIdTotalCompletionMap = new HashMap<>(10);
+        Map<String, List<ExamCompletionStatus>> userIdCompletionStatusMap = new HashMap<>(10);
         for (ExamCompletionStatus status : completionStatuses) {
             String userId = status.getUserId();
+            // 1) 计算总分
             Float score = userIdTotalCompletionMap.get(userId);
             if (score == null) {
                 score = status.getScore();
@@ -418,8 +436,15 @@ public class ExamProblemController {
                 score += status.getScore();
             }
             userIdTotalCompletionMap.put(userId, score);
+            // 2) 归类记录
+            List<ExamCompletionStatus> completionStatusList = userIdCompletionStatusMap.get(userId);
+            if (completionStatusList == null) {
+                completionStatusList = new ArrayList<>();
+            }
+            completionStatusList.add(status);
+            userIdCompletionStatusMap.put(userId, completionStatusList);
         }
-        // 3. 获取本场考试的所有编程填空题提交记录
+        // 3. 获取本场考试的所有提交记录(编程填空题)
         Wrapper<ExamProcedureStatus> procedureStatusQueryWrapper = new QueryWrapper<ExamProcedureStatus>()
                 .eq("exam_id", examId)
                 .select("user_id, max(score) as score")
@@ -429,6 +454,7 @@ public class ExamProblemController {
         Map<String, Float> userIdTotalProcedureMap = new HashMap<>(10);
         for (ExamProcedureStatus status : procedureStatuses) {
             String userId = status.getUserId();
+            // 1) 计算总分
             Float score = userIdTotalProcedureMap.get(userId);
             if (score == null) {
                 score = status.getScore();
@@ -437,21 +463,71 @@ public class ExamProblemController {
             }
             userIdTotalProcedureMap.put(userId, score);
         }
+        // 3.2 获取键值对，key:学号 value:记录(编程填空题)
+        Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>().eq("exam_id", examId);
+        List<ExamProcedureStatus> procedureStatusesList = examProcedureStatusService.list(queryWrapper);
+        Map<String, List<ExamProcedureStatus>> userIdProcedureStatusMap = new HashMap<>(10);
+        for (ExamProcedureStatus status : procedureStatusesList) {
+            String userId = status.getUserId();
+            // 1) 归类记录
+            List<ExamProcedureStatus> procedureStatusList = userIdProcedureStatusMap.get(userId);
+            if (procedureStatusList == null) {
+                procedureStatusList = new ArrayList<>();
+            }
+            procedureStatusList.add(status);
+            userIdProcedureStatusMap.put(userId, procedureStatusList);
+        }
         // 4. 整合所有的数据
         List<RankingListData> rankingListDataList = new ArrayList<>();
         for (String userId : userIdUserNameMap.keySet()) {
             String userName = userIdUserNameMap.get(userId);
-            Float totalScore = userIdTotalMap.get(userId);
+            // 获取对应的部分分数
             Float procedureTotalScore = userIdTotalProcedureMap.get(userId);
             Float completionTotalScore = userIdTotalCompletionMap.get(userId);
-            rankingListDataList.add(new RankingListData()
+            // 计算总分
+            procedureTotalScore = procedureTotalScore == null ? 0f : procedureTotalScore;
+            completionTotalScore = completionTotalScore == null ? 0f : completionTotalScore;
+            Float totalScore = procedureTotalScore + completionTotalScore;
+            List<ExamCompletionStatus> completionStatusList = userIdCompletionStatusMap.get(userId);
+            List<ExamProcedureStatus> procedureStatusList = userIdProcedureStatusMap.get(userId);
+            // 1) 设置基础字段
+            RankingListData rankingListData = new RankingListData()
                     .setUserId(userId).setUserName(userName)
                     .setTotalScore(StringUtil.getNumberNoInvalidZero(totalScore))
                     .setCompletionTotalScore(StringUtil.getNumberNoInvalidZero(completionTotalScore))
-                    .setProgrammeTotalScore(StringUtil.getNumberNoInvalidZero(procedureTotalScore)));
+                    .setProgrammeTotalScore(StringUtil.getNumberNoInvalidZero(procedureTotalScore));
+            List<CompletionShowData> completionShowDataList = new ArrayList<>();
+            if (completionStatusList != null) {
+                for (ExamCompletionStatus examCompletionStatus : completionStatusList) {
+                    completionShowDataList.add(new CompletionShowData(examCompletionStatus));
+                }
+            }
+            List<ProblemStateListData> problemStateListData = getProblemStateListData(procedureStatusList);
+            // 2) 获取对应的题目分数
+            for (int i = 0; i < problemStateListData.size(); i++) {
+                ProblemStateListData stateListData = problemStateListData.get(i);
+                Integer stateListDataExamId = stateListData.getExamId();
+                Integer proId = stateListData.getProId();
+                Wrapper<ExamProcedureProblem> wrapper = new QueryWrapper<ExamProcedureProblem>()
+                        .eq("exam_id", stateListDataExamId).eq("problem_id", proId);
+                ExamProcedureProblem procedureProblem = examProcedureProblemService.getOne(wrapper);
+                String score = procedureProblem.getScore();
+                if (score == null || score.equals("")) {
+                    continue;
+                }
+                String[] scores = score.split("#");
+                Map<Integer, String> castIdScoreMap = new HashMap<>();
+                for (int j = 0; j < scores.length; j++) {
+                    castIdScoreMap.put(j, scores[j]);
+                }
+                stateListData.setCastIdScoreMap(castIdScoreMap);
+            }
+            // 3) 设置对应的记录
+            rankingListDataList.add(rankingListData.setCompletionShowDataList(completionShowDataList)
+                    .setProgrammeShowDataList(problemStateListData));
         }
         Collections.sort(rankingListDataList);
-        model.addAttribute("exam_id", examId);
+        model.addAttribute("examId", examId);
         model.addAttribute("rankingListData", rankingListDataList);
         return "exam/questionSet/ranking";
     }
@@ -533,6 +609,123 @@ public class ExamProblemController {
             }
         }
         return ResultDataUtil.success();
+    }
+
+    /**
+     * 获取对应学生详细的填空题做题记录
+     *
+     * @param id
+     * @return com.smxy.exam.beans.ResultData
+     * @author 范颂扬
+     * @date 2022-05-10 16:57
+     */
+    @ResponseBody
+    @GetMapping("/getCompletionDetail/{id}")
+    public ResultData getCompletionDetailToRanking(@PathVariable Integer id) {
+        // 1. 查询记录
+        ExamCompletionStatus completionStatus = examCompletionStatusService.getById(id);
+        if (completionStatus == null) {
+            return ResultDataUtil.error(666, "查无对应的记录");
+        }
+        Integer statusId = completionStatus.getId();
+        Integer examId = completionStatus.getExamId();
+        String problemId = completionStatus.getProblemId();
+        String source = completionStatus.getSource();
+        Integer problemNum = completionStatus.getProblemNum();
+        // 2. 查询对应题库的题目
+        ExamCompletionBank completionBank = examCompletionBankService.getById(problemId);
+        // 3. 查询对应的分数
+        Wrapper<ExamCompletionProblem> queryWrapper = new QueryWrapper<ExamCompletionProblem>()
+                .eq("exam_id", examId).eq("problem_id", problemId);
+        ExamCompletionProblem completionProblem = examCompletionProblemService.getOne(queryWrapper);
+        if (completionProblem == null) {
+            return ResultDataUtil.error(666, "查无对应的题目分数");
+        }
+        String score = completionProblem.getScore();
+        // 4. 封装学生答案
+        ProblemBankController.ProblemShowData problemStudentAnswer = new ProblemBankController.ProblemShowData(
+                completionBank.setAnswer(source).setScore(score).setId(statusId)).setProNum(problemNum);
+        // 5. 封装正确答案
+        ProblemBankController.ProblemShowData problemCorrectAnswer = new ProblemBankController.ProblemShowData(
+                completionBank.setScore(score));
+        // 6. 正确答案转换只显示答案
+        problemCorrectAnswer.replaceContextOnlyAnswer();
+        Map<String, Object> map = new HashMap<>();
+        map.put("problemShowData", new ProblemBankController.ProblemShowData[]{problemStudentAnswer, problemCorrectAnswer});
+        map.put("studentScore", completionStatus.getScore());
+        return ResultDataUtil.success(map);
+    }
+
+    /**
+     * 修改学生填空题分数
+     *
+     * @param id
+     * @param score
+     * @return com.smxy.exam.beans.ResultData
+     * @author 范颂扬
+     * @date 2022-05-13 21:34
+     */
+    @ResponseBody
+    @GetMapping("/changeCompletionScore/{id}")
+    public ResultData changeStudentCompletionScore(@PathVariable Integer id, @PathParam("score") String score) {
+        Wrapper<ExamCompletionStatus> updateWrapper = new UpdateWrapper<ExamCompletionStatus>()
+                .eq("id", id).set("score", score).set("is_change", "1");
+        boolean res = examCompletionStatusService.update(updateWrapper);
+        if (res) {
+            return ResultDataUtil.success();
+        }
+        return ResultDataUtil.error(666, "修改失败");
+    }
+
+    /**
+     * 修改学生编程填空题分数
+     *
+     * @param ids
+     * @param scores
+     * @return com.smxy.exam.beans.ResultData
+     * @author 范颂扬
+     * @date 2022-05-14 16:47
+     */
+    @ResponseBody
+    @PostMapping("/changeProgrammeScore")
+    @Transactional(rollbackFor = {Exception.class})
+    public ResultData changeStudentProgrammeScore(@RequestParam("ids[]") Integer[] ids, @RequestParam("scores[]") String[] scores) {
+        if (ids == null || scores == null) {
+            return ResultDataUtil.error(111, "参数为空");
+        }
+        List<Integer> idList = Arrays.asList(ids);
+        List<ExamProcedureStatus> procedureStatusList = examProcedureStatusService.listByIds(idList);
+        Map<Integer, ExamProcedureStatus> procedureIdMap = procedureStatusList.stream().collect(HashMap::new
+                , (map, examProcedureStatus) -> map.put(examProcedureStatus.getId(), examProcedureStatus)
+                , HashMap::putAll);
+        List<Integer> changeIndex = new ArrayList<>();
+        Map<Integer, Float> testIdScoreMap = new HashMap<>();
+        for (int i = 0; i < ids.length; i++) {
+            ExamProcedureStatus status = procedureIdMap.get(ids[i]);
+            Float score = status.getScore();
+            Integer caseTestDataId = status.getCaseTestDataId();
+            if (!score.equals(new Float(scores[i]))) {
+                float v = Float.parseFloat(scores[i]);
+                status.setScore(v);
+                Wrapper<ExamProcedureStatus> updateWrapper = new UpdateWrapper<ExamProcedureStatus>()
+                        .eq("id", status.getId()).set("score", v).set("is_change", "1");
+                examProcedureStatusService.update(updateWrapper);
+                changeIndex.add(i);
+            }
+            Float aFloat = testIdScoreMap.get(caseTestDataId);
+            if(aFloat == null) {
+                aFloat = status.getScore();
+            }
+            testIdScoreMap.put(caseTestDataId, Float.max(aFloat, status.getScore()));
+        }
+        Map<String, Object> itemMap = new HashMap<>();
+        Float changeScore = 0f;
+        for (Integer testId : testIdScoreMap.keySet()) {
+            changeScore += testIdScoreMap.get(testId);
+        }
+        itemMap.put("changeIndex", changeIndex);
+        itemMap.put("changeScore", changeScore);
+        return ResultDataUtil.success(itemMap);
     }
 
     /**
@@ -746,6 +939,16 @@ public class ExamProblemController {
     private class ProblemStateListData {
 
         /**
+         * 考试ID
+         */
+        private Integer examId;
+
+        /**
+         * 题目ID
+         */
+        private Integer proId;
+
+        /**
          * 提交时间
          */
         private LocalDateTime submitTime;
@@ -780,9 +983,16 @@ public class ExamProblemController {
          */
         private List<TestPoint> testPoints;
 
+        /**
+         * 测试点对应的分数
+         */
+        private Map<Integer, String> castIdScoreMap;
+
         @Data
         @Accessors(chain = true)
         private class TestPoint {
+
+            private Integer id;
 
             private Integer castId;
 
@@ -796,17 +1006,21 @@ public class ExamProblemController {
 
             private String compiler;
 
+            private String isChange;
+
             public TestPoint() {
                 super();
             }
 
             public TestPoint(ExamProcedureStatus procedureStatus) {
-                this.state = ExamResultUtil.ProgrammeResult.getNameByCode(procedureStatus.getResult());
+                this.id = procedureStatus.getId();
+                this.state = ProgrammeResultEnum.getNameByCode(procedureStatus.getResult());
                 this.castId = procedureStatus.getCaseTestDataId();
                 this.time = procedureStatus.getTime();
                 this.memory = procedureStatus.getMemory();
                 this.score = StringUtil.getNumberNoInvalidZero(procedureStatus.getScore());
                 this.compiler = procedureStatus.getCompiler();
+                this.isChange = procedureStatus.getIsChange();
             }
 
         }
@@ -816,6 +1030,8 @@ public class ExamProblemController {
         }
 
         public ProblemStateListData(ExamProcedureStatus procedureStatus) {
+            this.examId = procedureStatus.getExamId();
+            this.proId = procedureStatus.getProblemId();
             this.submitTime = procedureStatus.getSubmitTime();
             this.proNum = procedureStatus.getProblemNum();
             this.userId = procedureStatus.getUserId();
@@ -831,6 +1047,38 @@ public class ExamProblemController {
         public void addTotalScore(Float totalScoreFloat) {
             this.totalScoreFloat += totalScoreFloat;
         }
+
+    }
+
+    @Data
+    @Accessors(chain = true)
+    private class CompletionShowData {
+
+        private Integer id;
+
+        private Integer proNum;
+
+        private String score;
+
+        private String submitTime;
+
+        private String isChange;
+
+        private Integer result;
+
+        public CompletionShowData() {
+            super();
+        }
+
+        public CompletionShowData(ExamCompletionStatus completionStatus) {
+            this.id = completionStatus.getId();
+            this.proNum = completionStatus.getProblemNum();
+            this.score = StringUtil.getNumberNoInvalidZero(completionStatus.getScore());
+            this.submitTime = completionStatus.getSubmitTime().toString().replace('T', ' ');
+            this.isChange = completionStatus.getIsChange();
+            this.result = completionStatus.getResult();
+        }
+
     }
 
     /**
@@ -855,47 +1103,11 @@ public class ExamProblemController {
 
         private List<CompletionShowData> completionShowDataList;
 
-        private List<ProgrammeShowData> programmeShowDataList;
+        private List<ProblemStateListData> programmeShowDataList;
 
         @Override
         public int compareTo(RankingListData o) {
             return Float.compare(Float.valueOf(o.getTotalScore()), Float.valueOf(this.getTotalScore()));
-        }
-
-        @Data
-        @Accessors(chain = true)
-        private class CompletionShowData {
-
-            private Integer id;
-
-            private Integer proNum;
-
-            private String content;
-
-            private String score;
-
-        }
-
-        @Data
-        @Accessors(chain = true)
-        private class ProgrammeShowData {
-
-            private Integer id;
-
-            private Integer proNum;
-
-            private String content;
-
-            private String score;
-
-        }
-
-        public CompletionShowData getCompletionShowData() {
-            return new CompletionShowData();
-        }
-
-        public ProgrammeShowData getProgrammeShowData() {
-            return new ProgrammeShowData();
         }
 
     }

@@ -5,81 +5,15 @@
     <title>排名</title>
     <link rel="icon" th:href="@{/favicon.ico}">
 
-    <style>
-        .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-                font-size: 3.5rem;
-            }
-        }
-
-        .dropdown-submenu {
-            position: relative;
-        }
-
-        .dropdown-submenu a::after {
-            transform: rotate(-90deg);
-            position: absolute;
-            right: 6px;
-            top: .8em;
-        }
-
-        .dropdown-submenu .dropdown-menu {
-            top: 0;
-            left: 100%;
-            margin-left: .1rem;
-            margin-right: .1rem;
-        }
-
-        .icon-demo .bi, .icon-demo-examples .bi {
-            width: 1em;
-            height: 1em;
-        }
-
-        .bi {
-            display: inline-block;
-            vertical-align: -0.125em;
-        }
-
-        .inline-style {
-            display: inline-flex;
-        }
-
-        .input-answer {
-            max-width: none;
-            width: 19.2ch;
-            max-height: 500px;
-            display: inline-flex !important;
-        }
-
-        .input-answer-addon {
-            min-width: 60px;
-            align-items: center;
-            text-align: center;
-            background-color: #e1e7ee !important;
-        }
-
-        .score_style {
-            width: 65px !important;
-            display: initial !important;
-        }
-
-        label {
-            margin: auto;
-        }
-    </style>
     <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/codemirror/codemirror.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/codemirror/ambiance.css}" rel="stylesheet">
+    <!-- Sweet Alert -->
+    <link th:href="@{/hAdmin/css/plugins/sweetalert/sweetalert.css}" rel="stylesheet">
+    <link th:href="@{/css/mycss.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -129,12 +63,14 @@
                         <td>[[${rankingStat.count}]]</td>
                         <td>[[${ranking.userId}]] [[${ranking.userName}]]</td>
                         <td>
-                            <a type="button" data-toggle="modal" data-target="#showProblemModal">
+                            <a type="button"
+                               th:onclick="showAllProblem([[${rankingStat.index}]], 'completion', [[${ranking.userId}]], [[${ranking.userName}]], [[${examId}]])">
                                 [[${ranking.completionTotalScore}]]
                             </a>
                         </td>
                         <td>
-                            <a type="button" data-toggle="modal" data-target="#showProblemModal">
+                            <a type="button"
+                               th:onclick="showAllProblem([[${rankingStat.index}]], 'programme', [[${ranking.userId}]], [[${ranking.userName}]], [[${examId}]])">
                                 [[${ranking.programmeTotalScore}]]
                             </a>
                         </td>
@@ -145,64 +81,396 @@
             </div>
         </main>
     </div>
+</div>
 
-    <!-- 显示题目模态框 -->
-    <div th:if="${#session.getAttribute('isAdmin')}" class="modal inmodal" id="showProblemModal" tabindex="-1"
-         role="dialog" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content animated flipInY">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span
-                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">L1-1</h4>
-                    <small class="font-bold">用户：20180865114 范颂扬</small>
-                </div>
-                <div class="modal-body">
-                    <div class="problem-content">
-                        <div>
-                            Java把数据类型分为
-                            <div class="input-answer input-group m-b">
-                                <input disabled value="数据类型" type="text" class="form-control"> <span
-                                    class="input-answer-addon input-group-addon">2 分</span>
-                            </div>
-                            和
-                            <div class="input-answer input-group m-b">
-                                <input disabled value="引用类型" type="text" class="form-control"> <span
-                                    class="input-answer-addon input-group-addon">2 分</span>
-                            </div>
-                            。
-                        </div>
-                        <hr>
-                        <div>
-                            <div class="inline-style">
-                                <label>得分：</label>
-                                <input value="5" type="text" class="score_style form-control">
-                                <label>&emsp;分</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-primary">保存</button>
-                </div>
+<!-- 显示所有题目模态框 -->
+<div class="modal inmodal fade" id="showProblemModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">Close</span></button>
+                <h4 id="score_title" class="modal-title">填空题答题详情（得分：20分）</h4>
+                <small id="user_subhead" class="font-bold">smfsy 创建于 2022-04-08 17:21:27</small>
+            </div>
+            <div class="modal-body">
+                <!-- 详细状态 -->
+                <table class="table">
+                    <thead id="table_head">
+                    <tr>
+                        <th>题号</th>
+                        <th>结果</th>
+                        <th>分数</th>
+                    </tr>
+                    </thead>
+                    <tbody id="moreStatus">
+                    <tr>
+                        <td>1</td>
+                        <td>
+                            <sapn class="label label-info">答案正确</sapn>
+                        </td>
+                        <td>5</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
 </div>
-
+<!-- 显示详细填空题模态框 -->
+<div class="modal inmodal" id="showCompletionDetailModal"
+     tabindex="-1"
+     role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated">
+            <div class="modal-header">
+                <input type="hidden" id="pro_id">
+                <button type="button" class="close" onclick="closeModal('showCompletionDetailModal')">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 id="pro_title" class="modal-title"></h4>
+                <small id="pro_explain" class="font-bold"></small>
+            </div>
+            <div class="modal-body">
+                <div class="problem-content">
+                    <div class="problem_text">
+                        <h2><strong>学生答题：</strong></h2>
+                        <div id="pro_context_student" class="search-form"></div>
+                        <div class="hr-line-dashed"></div>
+                        <h2><strong>题库答案：</strong></h2>
+                        <div id="pro_context_correct" class="search-form"></div>
+                        <div class="hr-line-dashed"></div>
+                        <h2>
+                            <strong>学生得分：<input type="text" class="input-answer form-control"
+                                                id="student_score_c"></strong>
+                            <button id="change_btn_c" type="button" class="btn btn-success">修改</button>
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" onclick="closeModal('showCompletionDetailModal')">关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 显示详细编程填空题模态框 -->
+<div class="modal inmodal fade" id="showProgrammeDetailModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" onclick="closeModal('showProgrammeDetailModal')">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">提交结果</h4>
+            </div>
+            <div class="modal-body">
+                <!-- 总状态 -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>提交时间</th>
+                        <th>分数</th>
+                        <th>题目</th>
+                        <th>用户</th>
+                    </tr>
+                    </thead>
+                    <tbody id="generalStatus"></tbody>
+                </table>
+                <hr>
+                <!-- 详细状态 -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>测试点</th>
+                        <th>结果</th>
+                        <th>编译器</th>
+                        <th>分数</th>
+                        <th>测试分数</th>
+                        <th>耗时</th>
+                        <th>内存</th>
+                    </tr>
+                    </thead>
+                    <tbody id="moreProgramme"></tbody>
+                </table>
+                <!-- 学生提交的代码 -->
+                <div class="row">
+                    <div class="col-md-1">
+                        <h4>代码</h4>
+                    </div>
+                    <div class="col-md-11">
+                        <textarea id="code2"></textarea>
+                    </div>
+                </div>
+                <hr>
+            </div>
+            <div class="modal-footer">
+                <button id="change_btn_p" type="button" class="btn btn-success">修改</button>
+                <button type="button" class="btn btn-primary"
+                        onclick="closeModal('showProgrammeDetailModal')">关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
-
+<!-- Sweet alert -->
+<script th:src="@{/hAdmin/js/plugins/sweetalert/sweetalert.min.js}"></script>
 <script th:src="@{/hAdmin/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
+<!-- CodeMirror -->
+<script th:src="@{/hAdmin/js/plugins/codemirror/codemirror.js}"></script>
+<script th:src="@{/hAdmin/js/plugins/codemirror/mode/javascript/javascript.js}"></script>
+<script th:inline="javascript">
+    // 列表数据
+    const rankingListData = [[${rankingListData}]];
+    let editor_two;
+    let source;
 
-<script>
     $(function () {
         $('.full-height-scroll').slimScroll({
             height: '100%'
         });
     });
+
+    /**
+     * 模态框显示时加载代码编辑器
+     */
+    $("#showProgrammeDetailModal").on('shown.bs.modal', function () {
+        if (editor_two != null) {
+            editor_two.toTextArea();
+        }
+        editor_two = CodeMirror.fromTextArea(document.getElementById("code2"), {
+            lineNumbers: true,
+            matchBrackets: true,
+            styleActiveLine: true,
+        });
+        editor_two.refresh();
+        editor_two.setValue(source);
+    })
+
+    /**
+     * 获取显示的状态
+     */
+    const getStatesClass = function (e) {
+        if (e == "答案正确") {
+            return "label label-info";
+        } else if (e == "格式错误") {
+            return "label label-warning"
+        } else {
+            return "label label-danger";
+        }
+    }
+
+    /**
+     * 显示所有的题目
+     * @param index
+     * @param type
+     * @param userId
+     * @param username
+     * @param examId
+     */
+    const showAllProblem = function (index, type, userId, username, examId) {
+        let problemData;
+        let htmlValue = "";
+        let totalScore = 0;
+        if (type == "completion") {
+            problemData = rankingListData[index].completionShowDataList;
+            console.log(problemData);
+            for (let i = 0; i < problemData.length; i++) {
+                htmlValue += "<tr><td>" + problemData[i].proNum + "</td>";
+                htmlValue += "<td>" + userId + " " + username + "</td>";
+                switch (problemData[i].result) {
+                    case 0:
+                        htmlValue += "<td><sapn class=\"label label-info\">答案正确</sapn></td>";
+                        break;
+                    case 1:
+                        htmlValue += "<td><sapn class=\"label label-warning\">部分正确</sapn></td>";
+                        break;
+                    case 2:
+                        htmlValue += "<td><sapn class=\"label label-danger\">答案错误</sapn></td>";
+                        break;
+                }
+                if (problemData[i].isChange == 1) {
+                    htmlValue += "<td><a class='is_change' " +
+                        "onclick='showCompletionDetailProblem(" + problemData[i].id + "," + index + "," + i + ",\"" + username + "\"," + userId + "," + examId + ")'>"
+                        + problemData[i].score + "</a></td></tr>";
+                } else {
+                    htmlValue += "<td><a " +
+                        "onclick='showCompletionDetailProblem(" + problemData[i].id + "," + index + "," + i + ",\"" + username + "\"," + userId + "," + examId + ")'>"
+                        + problemData[i].score + "</a></td></tr>";
+                }
+                totalScore += parseFloat(problemData[i].score);
+            }
+            $("#table_head").html('<tr><th>题号</th><th>用户</th><th>结果</th><th>分数</th></tr>');
+        } else if (type == "programme") {
+            problemData = rankingListData[index].programmeShowDataList;
+            for (let i = 0; i < problemData.length; i++) {
+                htmlValue += '<tr><th scope="row">' + problemData[i].submitTime.replace('T', ' ') + '</th>';
+                htmlValue += '<th>' + userId + " " + username + '</th>';
+                htmlValue += "<td><a " +
+                    "onclick='showProgrammeDetailProblem(" + index + "," + i + ",\"" + username + "\"," + userId + "," + examId + ")'>"
+                    + problemData[i].totalScore + "</a></td>";
+                htmlValue += '<td>P-' + problemData[i].proNum + '</td></tr>';
+                totalScore += problemData[i].totalScoreFloat;
+            }
+            $("#table_head").html('<tr><th scope="col">提交时间</th><th scope="col">用户</th><th scope="col">分数</th><th scope="col">题目</th></tr>')
+        }
+        $("#score_title").html("填空题答题详情（得分：" + totalScore + "分）");
+        $("#user_subhead").html("用户: " + userId + " " + username);
+        $("#moreStatus").html(htmlValue);
+        $("#showProblemModal").modal('show');
+    }
+
+    /**
+     * 显示详细的填空题内容
+     * @param id
+     */
+    const showCompletionDetailProblem = function (id, index, listId, username, userId, examId) {
+        $.get("/exam/getCompletionDetail/" + id, function (data, status) {
+            if (status == "success") {
+                if (data.code == 777) {
+                    console.log(data);
+                    let resultData = data.data.problemShowData;
+                    $("#pro_id").attr("value", resultData[0].id);
+                    $("#pro_title").text("填空题-" + resultData[0].proNum + " (" + resultData[0].totalPoints + "分)");
+                    $("#pro_explain").text(resultData[1].adminid + " 创建于 " + resultData[1].time);
+                    $("#pro_context_student").html(resultData[0].replaceContextShowAnswerNoEdit).attr("blankSum", resultData[0].blankSum);
+                    $("#pro_context_correct").html(resultData[1].replaceContextOnlyAnswer);
+                    $("#student_score_c").val(data.data.studentScore);
+                    $("#change_btn_c").click(() => changeScoreCompletion(id, index, listId, username, userId, examId));
+                    $("#showCompletionDetailModal").modal('show');
+                }
+            }
+        })
+    }
+
+    /**
+     * 修改填空题分数
+     */
+    const changeScoreCompletion = function (id, index, listId, username, userId, examId) {
+        let score = $("#student_score").val();
+        $.get("/exam/changeCompletionScore/" + id + "?score=" + score, function (data, status) {
+            if (status == 'success') {
+                if (data.code == 777) {
+                    swal({title: "成功", message: "修改分数成功", type: 'success'}, function () {
+                        // 修改当前页面中的数据
+                        let problemShowData = rankingListData[index].completionShowDataList;
+                        problemShowData[listId].score = score;
+                        problemShowData[listId].isChange = 1;
+                        // 关闭模态框
+                        closeModal('showCompletionDetailModal');
+                        // 重新打开模态框
+                        showAllProblem(index, 'completion', userId, username, examId);
+                    });
+                } else {
+                    swal("修改分数失败", data.message, 'warning');
+                }
+            } else {
+                swal("服务器异常", "请联系管理员", 'error');
+            }
+        })
+    }
+
+    /**
+     * 显示详细的编程填空题的内容
+     */
+    const showProgrammeDetailProblem = function (index, listId, username, userId, examId) {
+        let problemStates = rankingListData[index].programmeShowDataList[listId];
+        source = problemStates.source;
+        // 总状态
+        $("#generalStatus").html("<tr><td>" + problemStates.submitTime.replace("T", " ") + "</td>" +
+            "<td>" + problemStates.totalScore + "</td><td>P-" + problemStates.proNum +
+            "</td><td>" + problemStates.userId + " " + username + "</td></tr>");
+        // 详细状态
+        let htmlValue = "";
+        let ids = new Array();
+        let states = problemStates.testPoints;
+        for (let i = 0; i < states.length; i++) {
+            ids.push(states[i].id);
+            htmlValue += "<tr><td>" + states[i].castId + "</td>";
+            htmlValue += "<td><sapn class='" + getStatesClass(states[i].state) + "'>" + states[i].state + "</sapn></td>";
+            htmlValue += "<td>" + states[i].compiler + "</td>"
+            if (states[i].isChange == 1) {
+                htmlValue += "<td><input id='input_" + states[i].id + "' class='is_change' value='" + states[i].score + "'></td>";
+            } else {
+                htmlValue += "<td><input id='input_" + states[i].id + "' value='" + states[i].score + "'></td>";
+            }
+            htmlValue += "<td>" + problemStates.castIdScoreMap[states[i].castId] + "</td>";
+            htmlValue += "<td>" + states[i].time + " ms</td><td>" + states[i].memory + " KB</td></tr>";
+        }
+        $("#change_btn_p").click(() => changeScoreProgramme(index, ids, listId, userId, username, examId));
+        $("#moreProgramme").html(htmlValue);
+        // 加载代码
+        $('#showProgrammeDetailModal').modal('show');
+    }
+
+    /**
+     * 修改编程填空题分数
+     */
+    const changeScoreProgramme = function (index, ids, listId, userId, username, examId) {
+        let scores = new Array();
+        for (let i = 0; i < ids.length; i++) {
+            let score = $("#input_" + ids[i]).val();
+            scores.push(score);
+        }
+
+        $.post("/exam/changeProgrammeScore", {
+            ids: ids,
+            scores: scores
+        }, function (data, status) {
+            if (status == 'success') {
+                if (data.code == 777) {
+                    let changeIndex = data.data['changeIndex'];
+                    swal({title: "成功", message: "修改分数成功", type: 'success'}, function () {
+                        // 修改当前页面中的数据
+                        let problemShowData = rankingListData[index].programmeShowDataList[listId];
+                        for (let i = 0; i < changeIndex.length; i++) {
+                            let item = changeIndex[i];
+                            problemShowData.testPoints[item].score = scores[item];
+                            problemShowData.testPoints[item].isChange = 1;
+                        }
+                        problemShowData.totalScoreFloat = data.data['changeScore'];
+                        problemShowData.totalScore = problemShowData.totalScoreFloat + "";
+                        console.log(problemShowData);
+                        // 关闭模态框
+                        closeModal('showProgrammeDetailModal');
+                        // 重新打开模态框
+                        showAllProblem(index, 'programme', userId, username, examId);
+                    });
+                } else {
+                    swal("修改分数失败", data.message, 'warning');
+                }
+            } else {
+                swal("服务器异常", "请联系管理员", 'error');
+            }
+        });
+    }
+
+    /**
+     * 关闭模态框
+     * @param id 模态框 ID
+     */
+    const closeModal = function (id) {
+        $("#" + id).modal('toggle');
+        // 解决在嵌套多个模态框时，关闭顶层模态框，导致底层模态框的滚动条消失
+        $("body").addClass("modal-open");
+    }
+
+    /**
+     * 页面初始化
+     */
+    $(document).ready(function () {
+        console.log([[${rankingListData}]]);
+    });
+
 </script>
 </body>
 </html>

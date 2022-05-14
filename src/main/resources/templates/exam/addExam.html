@@ -5,34 +5,11 @@
     <title>添加考试</title>
     <!-- Bootstrap core CSS -->
     <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
-
-    <style>
-        .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-                font-size: 3.5rem;
-            }
-        }
-
-        /* 图标居中 */
-        .bi {
-            display: inline-block;
-            vertical-align: -0.125em;
-        }
-    </style>
-
     <!-- Custom styles for this template -->
     <link th:href="@{/css/dashboard.css}" rel="stylesheet">
     <link th:href="@{/css/daterangepicker.min.css}" rel="stylesheet"/>
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <link th:href="@{/css/mycss.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -40,8 +17,8 @@
     <div class="row">
         <!-- 添加考试表单 -->
         <main style="margin-top: 10px" role="main" class="col align-self-center">
-            <form th:action="${exam != null ? '/exam/editExam':'/exam/addExam'}" method="post">
-                <input type="hidden" th:value="${exam != null ? exam.id : ''}">
+            <form th:action="@{/exam/addExam}" method="post">
+                <input type="hidden" name="id" th:value="${exam != null ? exam.id : null}">
                 <div class="form-group">
                     <label for="exampleInputTitle">考试标题</label>
                     <input th:value="${exam != null ? exam.title : ''}" name="title" type="text" class="form-control"

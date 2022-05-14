@@ -146,7 +146,7 @@ public class ExamController {
      * @date 2022-03-11 16:18
      */
     @PostMapping("/addExam")
-    public String addExam(@RequestParam("title") String title
+    public String addExam(@RequestParam("title") String title, @RequestParam(value = "id", required = false) Integer id
             , @RequestParam("datetimes") String datetimes, @RequestParam("length") int length
             , @RequestParam(value = "isCheck", defaultValue = " ", required = false) String isCheck
             , HttpSession session, Model model) {
@@ -161,7 +161,7 @@ public class ExamController {
         LocalDateTime nowTime = LocalDateTime.now();
         int flag = (nowTime.compareTo(endTime) > 0) ? 0 : (nowTime.compareTo(beginTime) < 0 ? -1 : 1);
         // 4. 创建对象
-        Exam exam = new Exam().setAuthor(author).setIsCheck(isCheck.equals("on") ? 1 : -1)
+        Exam exam = new Exam().setId(id).setAuthor(author).setIsCheck(isCheck.equals("on") ? 1 : -1)
                 .setTitle(title).setBeginTime(beginTime).setEndTime(endTime).setFlag(flag)
                 .setLength(length);
         // 5. 执行操作
@@ -239,7 +239,7 @@ public class ExamController {
     public String stopExam(@PathVariable("examId") Integer examId) {
         // 关闭考试
         examService.updateById(new Exam().setId(examId).setFlag(0));
-        return "redirect:/examList";
+        return "redirect:/exam/examList";
     }
 
 }

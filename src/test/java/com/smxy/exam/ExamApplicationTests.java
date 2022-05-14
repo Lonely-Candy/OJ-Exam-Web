@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 class ExamApplicationTests {
@@ -143,5 +144,6 @@ class ExamApplicationTests {
             System.out.println(procedureStatus);
         }
     }
+
 
 }

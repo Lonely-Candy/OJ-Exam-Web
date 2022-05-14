@@ -70,5 +70,9 @@ public class ExamCompletionStatus implements Serializable {
      */
     private LocalDateTime submitTime;
 
+    /**
+     * 是否修改
+     */
+    private String isChange;
 
 }

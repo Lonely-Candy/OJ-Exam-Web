@@ -1,0 +1,163 @@
+.problem_text {
+    font-family: 'Harmony', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";;
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+.input-answer {
+    max-width: none;
+    width: 200px;
+    max-height: 500px;
+    display: inline-flex !important;
+    margin: 0;
+}
+
+.input-answer-addon {
+    min-width: 60px;
+    align-items: center;
+    text-align: center;
+    background-color: #e1e7ee !important;
+    display: flex;
+}
+
+.hide-title {
+    display: block;
+    /*设置宽度*/
+    width: 1030px;
+    /*若文字长度超过width，则隐藏文字*/
+    overflow: hidden;
+    /*超过的部分用 ... 显示*/
+    text-overflow: ellipsis;
+    /*取消文字自动换行，如果不加则文字会自动换行使得高度改变*/
+    white-space: nowrap;
+}
+
+.textarea {
+    width: 400px;
+    min-height: 20px;
+    max-height: 300px;
+    _height: 120px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 3px;
+    outline: 0;
+    border: 1px solid #a0b3d6;
+    font-size: 12px;
+    line-height: 24px;
+    padding: 2px;
+    word-wrap: break-word;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    border-color: rgba(82, 168, 236, 0.8);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 8px rgba(82, 168, 236, 0.6);
+}
+
+.simditor-toolbar {
+    width: 100% !important;
+}
+
+.score_style {
+    width: 65px !important;
+    display: initial !important;
+}
+
+.problem-title {
+    display: block;
+    /*设置宽度*/
+    width: 400px;
+    /*若文字长度超过width，则隐藏文字*/
+    overflow: hidden;
+    /*超过的部分用 ... 显示*/
+    text-overflow: ellipsis;
+    /*取消文字自动换行，如果不加则文字会自动换行使得高度改变*/
+    white-space: nowrap;
+}
+
+.table-hide {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.problem-score {
+    background-color: #e1e7ee;
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+
+.inline-style {
+    display: inline-flex;
+}
+
+#c_problem_content, #p_problem_content {
+    font-size: 15px;
+}
+
+.bd-placeholder-img {
+    font-size: 1.125rem;
+    text-anchor: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+@media (min-width: 768px) {
+    .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+    }
+}
+
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu a::after {
+    transform: rotate(-90deg);
+    position: absolute;
+    right: 6px;
+    top: .8em;
+}
+
+.dropdown-submenu .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-left: .1rem;
+    margin-right: .1rem;
+}
+
+.icon-demo .bi, .icon-demo-examples .bi {
+    width: 1em;
+    height: 1em;
+}
+
+/* 图标居中 */
+.bi {
+    display: inline-block;
+    vertical-align: -0.125em;
+}
+
+label {
+    margin: auto;
+}
+
+#problem_content {
+    font-size: 15px;
+}
+
+.answer_a_filled {
+    color: #ffffff !important;
+    background-color: #27c24c !important;
+}
+
+.answer_a_unfilled {
+    color: #ffffff !important;
+    background-color: #fad733 !important;
+}
+
+.is_change {
+    color: red;
+}

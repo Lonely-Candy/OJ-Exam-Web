@@ -62,6 +62,7 @@ public class StringUtil {
      */
     public static String getRunCodeByHtml(String html, String[] answer) {
         Document document = Jsoup.parse(html);
+        document.outputSettings().indentAmount(0).prettyPrint(false);
         Elements elements = document.getElementsByTag("code");
         Element element = elements.get(0);
         // 加回 <code> 标签，防止出现分割错误。
@@ -96,6 +97,9 @@ public class StringUtil {
      * @date 2022-04-30 12:27
      */
     public static String getNumberNoInvalidZero(Float v) {
+        if (v == null) {
+            return "0";
+        }
         return new BigDecimal(String.valueOf(v)).stripTrailingZeros().toPlainString();
     }
 

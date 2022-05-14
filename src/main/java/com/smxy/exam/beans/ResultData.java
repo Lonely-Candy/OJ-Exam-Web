@@ -17,6 +17,7 @@ public class ResultData<T> {
      * 666 - 数据库处理错误
      * 444 - 文件处理错误
      * 222 - 业务逻辑错误
+     * 111 - 参数错误
      *
      */
     private Integer code;

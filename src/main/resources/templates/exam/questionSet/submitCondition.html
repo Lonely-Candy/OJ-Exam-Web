@@ -4,50 +4,6 @@
     <meta charset="utf-8">
     <title>提交情况</title>
     <link rel="icon" th:href="@{/favicon.ico}">
-    <style>
-        .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-                font-size: 3.5rem;
-            }
-        }
-
-        .dropdown-submenu {
-            position: relative;
-        }
-
-        .dropdown-submenu a::after {
-            transform: rotate(-90deg);
-            position: absolute;
-            right: 6px;
-            top: .8em;
-        }
-
-        .dropdown-submenu .dropdown-menu {
-            top: 0;
-            left: 100%;
-            margin-left: .1rem;
-            margin-right: .1rem;
-        }
-
-        .icon-demo .bi, .icon-demo-examples .bi {
-            width: 1em;
-            height: 1em;
-        }
-
-        .bi {
-            display: inline-block;
-            vertical-align: -0.125em;
-        }
-    </style>
 
     <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
@@ -55,6 +11,7 @@
     <link th:href="@{/hAdmin/css/plugins/codemirror/codemirror.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/plugins/codemirror/ambiance.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <link th:href="@{/css/mycss.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -188,6 +145,9 @@
         editor_two.setValue(source);
     })
 
+    /**
+     * 获取显示的状态
+     */
     const getStatesClass = function (e) {
         if (e == "答案正确") {
             return "label label-info";

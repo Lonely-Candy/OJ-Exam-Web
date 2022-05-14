@@ -13,17 +13,8 @@
     <!-- highlight -->
     <link th:href="@{/highlight/default.min.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/plugins/iCheck/custom.css}" rel="stylesheet">
+    <link th:href="@{/css/mycss.css}" rel="stylesheet">
 
-    <style>
-        .simditor-toolbar {
-            width: 100% !important;
-        }
-
-        .score_style {
-            width: 65px;
-            display: initial;
-        }
-    </style>
 </head>
 <body class="gray-bg">
 <div class="wrapper wrapper-content">
@@ -317,6 +308,7 @@
      * @param type 保存的内容类型
      */
     const analysisViewSave = function (textareaId, saveButtonId, scoreId, type) {
+        let isEdit = [[${isEdit == null ? true : isEdit}]];
         // 1. 显示获取的内容
         $(textareaId).html(editor_content);
         // 2. 修改按钮样式
@@ -331,7 +323,11 @@
             score_html += '<div class="panel-body"><div class="col-md-8">' +
                 '<input type="text" value="' + value + '" disabled id="content_' + (i + 1) + '" class="form-control"></div>';
             if (type == 'completion') {
-                score_html += '<div class="col-md-4"><input type="text" id="score_' + (i + 1) + '" class="score_style form-control"> 分</div>';
+                if (isEdit) {
+                    score_html += '<div class="col-md-4"><input type="text" id="score_' + (i + 1) + '" class="score_style form-control"> 分</div>';
+                } else {
+                    score_html += '<div class="col-md-4"><input type="text" disabled id="score_' + (i + 1) + '" class="score_style form-control"> 分</div>';
+                }
             }
             score_html += '</div></div></div>';
         }
@@ -418,7 +414,7 @@
         }
         // 3. 处理测试数据
         let compiles = "";
-        if(compile != null) {
+        if (compile != null) {
             for (let i = 0; i < compile.length - 1; i++) {
                 compiles += $(compile[i]).children("input").val() + "#";
             }
@@ -457,7 +453,6 @@
     }
 
     /**
-     * 填空题
      * 点击 添加 按钮后点击方法
      */
     const submit = function (type) {
@@ -635,7 +630,7 @@
                 editor_programme.txt.html([[${problemData?.content}]]);
             }
             preview([[${type}]]);
-            if(scores != null) {
+            if (scores != null) {
                 for (let i = 0; i < scores.length; i++) {
                     $("#score_" + (i + 1)).val(scores[i]);
                 }

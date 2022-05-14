@@ -14,76 +14,7 @@
     <!-- highlight -->
     <link th:href="@{/highlight/default.min.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/plugins/iCheck/custom.css}" rel="stylesheet">
-
-    <style>
-        .inline-style {
-            display: inline-flex;
-        }
-
-        .problem-score {
-            background-color: #e1e7ee;
-            display: flex;
-            align-items: center;
-            text-align: center;
-        }
-
-        .problem_text {
-            font-family: 'Harmony', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";;
-            font-size: 1.5rem;
-            font-weight: 400;
-        }
-
-        .input-answer {
-            max-width: none;
-            width: 19.2ch;
-            max-height: 500px;
-            display: inline-flex;
-            margin: 0;
-        }
-
-        .input-answer-addon {
-            min-width: 60px;
-            align-items: center;
-            text-align: center;
-            background-color: #e1e7ee;
-            padding: 6px 12px !important;
-        }
-
-        .problem-title {
-            display: block;
-            /*设置宽度*/
-            width: 400px;
-            /*若文字长度超过width，则隐藏文字*/
-            overflow: hidden;
-            /*超过的部分用 ... 显示*/
-            text-overflow: ellipsis;
-            /*取消文字自动换行，如果不加则文字会自动换行使得高度改变*/
-            white-space: nowrap;
-        }
-
-        .hide-title {
-            display: block;
-            /*设置宽度*/
-            width: 250px;
-            /*若文字长度超过width，则隐藏文字*/
-            overflow: hidden;
-            /*超过的部分用 ... 显示*/
-            text-overflow: ellipsis;
-            /*取消文字自动换行，如果不加则文字会自动换行使得高度改变*/
-            white-space: nowrap;
-        }
-
-        .table-hide {
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        #problem_content {
-            font-size: 15px;
-        }
-    </style>
+    <link th:href="@{/css/mycss.css}" rel="stylesheet">
 </head>
 
 <body class="gray-bg">
@@ -98,7 +29,8 @@
                         <h5 class="tag-title">填空题</h5>
                         <ul class="tag-list" style="padding: 0">
                             <li th:each="problem, problemStat:${completionProblems}">
-                                <a th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'completion\')'">
+                                <a th:id="'c_' + ${problemStat.count - 1}"
+                                   th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'completion\')'">
                                     [[${problemStat.count}]]
                                 </a>
                             </li>
@@ -109,7 +41,8 @@
                         <h5 class="tag-title">编程填空题</h5>
                         <ul class="tag-list" style="padding: 0">
                             <li th:each="problem, problemStat:${programmeProblems}">
-                                <a th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'programme\')'">
+                                <a th:id="'p_' + ${problemStat.count - 1}"
+                                   th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'programme\')'">
                                     [[${problemStat.count}]]
                                 </a>
                             </li>
@@ -184,6 +117,25 @@
     let programmeProblems = [[${programmeProblems}]];
 
     /**
+     * 题目导航标签失去焦点后
+     */
+    let loadProblemATagStyle = function (type, index, answerArray) {
+        let isFilled = true;
+        let id = type == "completion" ? "#c_" + index : "#p_" + index;
+        for (let i = 0; i < answerArray.length; i++) {
+            if ($.trim(answerArray[i]) == "") {
+                isFilled = false;
+                break;
+            }
+        }
+        if (isFilled) {
+            $(id).attr("class", 'answer_a_filled');
+        } else {
+            $(id).attr("class", 'answer_a_unfilled');
+        }
+    }
+
+    /**
      * 加载题目数据
      * @param index 题号
      * @param type 题目类型
@@ -204,10 +156,11 @@
         $(proTotalPoints).text("分数: " + problemData[index].totalPoints);
         // 设置保存的答案
         let answerArray = getLocalAnswerArray(index, type);
+        loadProblemATagStyle(type, index, answerArray);
         // 给input输入框添加 onchange 事件
-        let inputs = $("#problem_content").find(".input-answer").find("input");
+        let inputs = $("#problem_content").find(".input-answer").find(".textarea");
         for (let i = 0; i < inputs.length; i++) {
-            $(inputs[i]).attr("onchange", 'inputOnchange(' + index + ', this, \'' + type + '\')').val(answerArray[i]);
+            $(inputs[i]).attr("onblur", 'inputOnchange(' + index + ', this, \'' + type + '\')').html(answerArray[i]);
         }
     }
 
@@ -228,33 +181,52 @@
         }
         console.log(completionAnswers);
         console.log(programmeAnswers);
+        // 封装表单数据
         let submitData = {
             "examId": [[${examId}]],
             "completionAnswers": completionAnswers,
             "programmeAnswers": programmeAnswers
         }
-        $.ajax({
-            type: 'post',
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
+        // 提示信息
+        swal({
+                title: "您要提交考试了吗",
+                text: "提交考试后，将无法继续作答！",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dd6b55",
+                confirmButtonText: "是的，我要提交！",
+                cancelButtonText: "让我再考虑一下…",
+                closeOnConfirm: false,
+                closeOnCancel: false
             },
-            url: "/student/submitExam",
-            success: function (data, status) {
-                if (status) {
-                    if (data.code == 777) {
-                        swal({title: "提交成功", type: "success"}, function () {
-                            history.go(-1);
-                        })
-                    } else {
-                        swal("提交失败", data.message, 'warning');
-                    }
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: 'post',
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        url: "/student/submitExam",
+                        success: function (data, status) {
+                            if (status) {
+                                if (data.code == 777) {
+                                    swal({title: "提交成功", type: "success"}, function () {
+                                        history.go(-1);
+                                    })
+                                } else {
+                                    swal("提交失败", data.message, 'warning');
+                                }
+                            } else {
+                                swal("服务器异常", "请联系管理员", "error");
+                            }
+                        },
+                        data: JSON.stringify(submitData)
+                    });
                 } else {
-                    swal("服务器异常", "请联系管理员", "error");
+                    swal("已取消", "您取消了提交操作！", "error");
                 }
-            },
-            data: JSON.stringify(submitData)
-        });
+            });
     }
 
     /**
@@ -264,7 +236,8 @@
         let answerArray = getLocalAnswerArray(index, type);
         let idSuffix = $(e).parents("span")[0].id.split("_")[2];
         let answerName = type == "completion" ? "cAnswers_" + index : "pAnswers_" + index;
-        answerArray[parseInt(idSuffix)] = $(e).val();
+        answerArray[parseInt(idSuffix)] = $(e).html();
+        loadProblemATagStyle(type, index, answerArray);
         sessionStorage.setItem(answerName, JSON.stringify(answerArray));
     }
 
@@ -293,6 +266,12 @@
      */
     $(document).ready(function () {
         loadProblemData(0, "completion");
+        for (let i = 0; i < completionProblems.length; i++) {
+            loadProblemATagStyle("completion", i, getLocalAnswerArray(i, "completion"));
+        }
+        for (let i = 0; i < programmeProblems.length; i++) {
+            loadProblemATagStyle("programme", i, getLocalAnswerArray(i, "programme"));
+        }
     });
 </script>
 </body>

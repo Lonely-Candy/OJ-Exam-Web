@@ -1,5 +1,6 @@
 package com.smxy.exam.util;
 
+import com.smxy.exam.myenum.CompletionResultEnum;
 import org.aspectj.apache.bcel.classfile.Code;
 
 import java.util.HashMap;
@@ -24,10 +25,10 @@ public class CompletionJudgeUtil {
      */
     public static Map<Float, Integer> judge(String[] submitAnswer, String[] answer, String[] scores) {
         float totalPoints = 0f;
-        ExamResultUtil.CompletionResult result = ExamResultUtil.CompletionResult.Correct;
+        CompletionResultEnum result = CompletionResultEnum.Correct;
         for (int i = 0; i < submitAnswer.length; i++) {
             if (submitAnswer[i] == null) {
-                result = ExamResultUtil.CompletionResult.PartiallyCorrect;
+                result = CompletionResultEnum.PartiallyCorrect;
                 continue;
             }
             if (submitAnswer[i].trim().equals(answer[i])) {
@@ -35,10 +36,10 @@ public class CompletionJudgeUtil {
             }
         }
         if (totalPoints == 0f) {
-            result = ExamResultUtil.CompletionResult.Mistake;
+            result = CompletionResultEnum.Mistake;
         }
         HashMap<Float, Integer> floatIntegerHashMap = new HashMap<>();
-        floatIntegerHashMap.put(totalPoints, ExamResultUtil.CompletionResult.getCodeByName(result.getName()));
+        floatIntegerHashMap.put(totalPoints, CompletionResultEnum.getCodeByName(result.getName()));
         return floatIntegerHashMap;
     }
 

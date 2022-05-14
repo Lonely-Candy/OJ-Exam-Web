@@ -11,41 +11,7 @@
     <link th:href="@{/hAdmin/css/plugins/sweetalert/sweetalert.css}" rel="stylesheet">
     <!-- highlight -->
     <link th:href="@{/highlight/default.min.css}" rel="stylesheet">
-
-    <style>
-        .problem_text {
-            font-family: 'Harmony', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";;
-            font-size: 1.5rem;
-            font-weight: 400;
-        }
-
-        .input-answer {
-            max-width: none;
-            width: 150px;
-            max-height: 500px;
-            display: inline-flex !important;
-            margin: 0;
-        }
-
-        .input-answer-addon {
-            min-width: 60px;
-            align-items: center;
-            text-align: center;
-            background-color: #e1e7ee !important;
-        }
-
-        .hide-title {
-            display: block;
-            /*设置宽度*/
-            width: 1030px;
-            /*若文字长度超过width，则隐藏文字*/
-            overflow: hidden;
-            /*超过的部分用 ... 显示*/
-            text-overflow: ellipsis;
-            /*取消文字自动换行，如果不加则文字会自动换行使得高度改变*/
-            white-space: nowrap;
-        }
-    </style>
+    <link th:href="@{/css/mycss.css}" rel="stylesheet">
 </head>
 
 <body class="gray-bg">
@@ -105,42 +71,18 @@
                                 <nav aria-label="Page navigation example">
                                     <ul class="pagination justify-content-center">
                                         <li th:class="${problemData.hasPrevious() ? 'page-item' : 'page-item disabled'}">
-                                            <a class="page-link"
+                                            <a class="page-link" th:disabled="${!problemData.hasPrevious()}"
                                                th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=completion'}"
                                                aria-label="Previous">
                                                 <span aria-hidden="true">&laquo;</span>
                                             </a>
                                         </li>
-                                        <li th:if="${problemData.getCurrent() - 2 > 0}" class="page-item">
-                                            <a class="page-link"
-                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 2} + '?type=completion'}">
-                                                [[problemData.getCurrent() - 2]]
-                                            </a>
-                                        </li>
-                                        <li th:if="${problemData.hasPrevious()}" class="page-item">
-                                            <a class="page-link"
-                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=completion'} ">
-                                                [[${problemData.getCurrent() - 1}]]</a>
-                                        </li>
                                         <li class="page-item active">
                                             <a class="page-link" href="#">[[${problemData.getCurrent()}]]</a>
                                         </li>
-                                        <li th:if="${problemData.hasNext()}" class="page-item">
-                                            <a class="page-link"
-                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 1} + '?type=completion'}">
-                                                [[${problemData.getCurrent() + 1}]]
-                                            </a>
-                                        </li>
-                                        <li th:if="${problemData.getCurrent() + 2 <= problemData.getPages()}"
-                                            class="page-item">
-                                            <a class="page-link"
-                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 2} + '?type=completion'}">
-                                                [[problemData.getCurrent() + 2]]
-                                            </a>
-                                        </li>
                                         <li th:class="${problemData.hasNext() ? 'page-item' : 'page-item disabled'}">
                                             <a class="page-link"
-                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 2} + '?type=completion'}"
+                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 1} + '?type=completion'}"
                                                aria-label="Next">
                                                 <span aria-hidden="true">&raquo;</span>
                                             </a>
@@ -207,6 +149,7 @@
             }
         });
     };
+
     /**
      * 修改题目
      */
@@ -215,10 +158,10 @@
         let blankSum = $("#pro_context").attr("blankSum");
         let answer = "";
         for (let i = 0; i < blankSum - 1; i++) {
-            let inputTagValue = $("#input_answer_" + i).find('input').val();
+            let inputTagValue = $("#input_answer_" + i).find('.textarea').html();
             answer += inputTagValue + "#";
         }
-        answer += $("#input_answer_" + (blankSum - 1)).find("input").val();
+        answer += $("#input_answer_" + (blankSum - 1)).find('.textarea').html();
         $.post("/editProblem/" + proId, {'answer': answer}, function (data, status) {
             if (status == "success") {
                 if (data.code == 777) {
@@ -228,6 +171,7 @@
             }
         })
     };
+
     /**
      * 删除题目
      * @param proId 题目ID
@@ -263,6 +207,7 @@
                 }
             });
     };
+
     /**
      * 查询题目
      */
@@ -285,6 +230,7 @@
         // 提交表单
         htmlFormElement.submit();
     };
+
     /**
      * input回车监听
      * @param e
@@ -295,6 +241,7 @@
             queryProblem();
         }
     })
+
     /**
      * input监听输入
      */

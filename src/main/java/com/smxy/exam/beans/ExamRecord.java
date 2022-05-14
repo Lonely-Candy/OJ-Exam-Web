@@ -55,10 +55,4 @@ public class ExamRecord implements Serializable {
      */
     private Date submitTime;
 
-    /**
-     * 得分
-     */
-    private Float score;
-
-
 }

@@ -81,7 +81,7 @@ public class ProblemBankController {
             , @RequestParam("type") String type, @RequestParam("compiles") String compileStr
             , HttpSession session) {
         // 1. 替换html标签
-        contentHtml = contentHtml.replaceAll("<u>(.*?)</u>", "<t></t>");
+        contentHtml = contentHtml.replaceAll("<u[^>]*?>(.*?)</u>", "<t></t>");
         // 2. 从 html 中获取纯文本作为空白标题内容
         String str = Jsoup.clean(contentHtml, "", Safelist.none());
         if (title == null || title.replaceAll("\\s*", "").equals("")) {
@@ -170,6 +170,11 @@ public class ProblemBankController {
         private Integer id;
 
         /**
+         * 题目对应的考试中的题号
+         */
+        private Integer proNum;
+
+        /**
          * 标题
          */
         private String title;
@@ -218,6 +223,11 @@ public class ProblemBankController {
          * 替换后的文本内容-不显示答案可编辑
          */
         private String replaceContextNoAnswer;
+
+        /**
+         * 替换后的文本内容-只有答案
+         */
+        private String replaceContextOnlyAnswer;
 
         /**
          * 需要填空的空数
@@ -277,7 +287,7 @@ public class ProblemBankController {
             this.blankSum = scores.length;
             double totalPoints = 0d;
             for (int i = 0; i < scores.length; i++) {
-                totalPoints += Double.parseDouble(scores[i] == null ? "0" : scores[i]);
+                totalPoints += Double.parseDouble(scores[i] == null || scores[i].equals("") ? "0" : scores[i]);
             }
             this.totalPoints = StringUtil.getNumberNoInvalidZero(totalPoints);
             // 替换内容
@@ -316,20 +326,42 @@ public class ProblemBankController {
             for (int i = 0; i < index; i++) {
                 answers[i] = answers[i].replaceAll("\"", "&quot;");
                 Element element = document.getElementById("input_answer_" + i);
-                String htmlValue = "<input disabled value=\"" + answers[i] + "\" type=\"text\" class=\"form-control\"> ";
+                String htmlValue = "<span class='textarea' contenteditable=\"false\">" + answers[i] + "</span>";
                 if (isShowScore) {
                     htmlValue += "<span class=\"input-answer-addon input-group-addon\">" + scores[i] + " 分</span>";
                 }
                 element.html(htmlValue);
-                Element inputTag = element.getElementsByTag("input").get(0);
+                Element inputTag = element.getElementsByClass("textarea").get(0);
                 if (!isShowAnswer) {
-                    inputTag.removeAttr("value");
+                    inputTag.html("");
                 }
                 if (isEdit) {
-                    inputTag.removeAttr("disabled");
+                    inputTag.attr("contenteditable", "true");
                 }
             }
             return document.body().html();
+        }
+
+        /**
+         * 将填空题显示的样式替换上去--只显示答案
+         *
+         * @param
+         * @return java.lang.String
+         * @author 范颂扬
+         * @date 2022-05-12 23:11
+         */
+        public void replaceContextOnlyAnswer() {
+            StringBuffer htmlText = new StringBuffer();
+            String[] answers = answer.split("#");
+            String[] scores = score == null ? new String[answers.length] : score.split("#");
+            for (int i = 0; i < scores.length; i++) {
+                htmlText.append("第 " + (i + 1) + " 空：<span id=\"input_answer_"
+                        + (i + 1) + "\" class=\"input-answer input-group m-b\">");
+                answers[i] = answers[i].replaceAll("\"", "&quot;");
+                htmlText.append("<span class='textarea' contenteditable=\"false\">" + answers[i] + "</span>");
+                htmlText.append("<span class=\"input-answer-addon input-group-addon\">" + scores[i] + " 分</span></span>\n");
+            }
+            this.replaceContextOnlyAnswer = htmlText.toString();
         }
     }
 
@@ -362,7 +394,7 @@ public class ProblemBankController {
     @GetMapping("/deleteProblem/{id}")
     public ResultData deleteById(@PathVariable("id") Integer id, @PathParam("type") String type) {
         boolean res = false;
-        if ("compeltion".equals(type)) {
+        if ("completion".equals(type)) {
             res = examCompletionBankService.removeById(id);
         }
         if ("programme".equals(type)) {
@@ -405,7 +437,8 @@ public class ProblemBankController {
      * @date 2022-04-08 17:10
      */
     @GetMapping("/toEditPage/{id}")
-    public String toEditPage(@PathVariable("id") Integer id, @PathParam("type") String type, Model model) {
+    public String toEditPage(@PathVariable("id") Integer id, @PathParam("type") String type
+            , @PathParam("isEdit") Boolean isEdit, Model model) {
         ExamCompletionBank completionProblem = null;
         ExamProcedureBank procedureProblem = null;
         String content = null;
@@ -431,6 +464,7 @@ public class ProblemBankController {
         if (procedureProblem != null) {
             procedureProblem.setContent(content);
         }
+        model.addAttribute("isEdit", isEdit == null ? true : isEdit);
         model.addAttribute("type", type);
         model.addAttribute("problemData"
                 , "completion".equals(type) ? completionProblem : procedureProblem);
@@ -590,10 +624,10 @@ public class ProblemBankController {
         scores[testId] = score;
         StringBuffer scoreBuffer = new StringBuffer(scores[0]);
         for (int i = 1; i < scores.length; i++) {
-            scoreBuffer.append(scores[i]);
             scoreBuffer.append('#');
+            scoreBuffer.append(scores[i]);
         }
-        boolean res = examProcedureBankService.updateById(procedureProblem.setScore(score));
+        boolean res = examProcedureBankService.updateById(procedureProblem.setScore(scoreBuffer.toString()));
         return res ? ResultDataUtil.success() : ResultDataUtil.error(666, "数据库写入分数失败");
     }
 

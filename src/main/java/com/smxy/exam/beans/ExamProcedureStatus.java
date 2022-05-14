@@ -106,6 +106,11 @@ public class ExamProcedureStatus implements Serializable {
      */
     private String compilerMessage;
 
+    /**
+     * 是否修改，1修改，0未修改
+     */
+    private String isChange;
+
     public ExamProcedureStatus() {
         super();
     }

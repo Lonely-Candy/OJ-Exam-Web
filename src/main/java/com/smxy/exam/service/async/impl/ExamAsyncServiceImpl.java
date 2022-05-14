@@ -75,27 +75,6 @@ public class ExamAsyncServiceImpl implements ExamAsyncService {
         if (programmeProblems != null && programmeProblems.size() != 0) {
             future2 = examJudgeAsyncService.executeExamProgrammeJudgeAsync(userData, procedureStatuses, proIdMapScores);
         }
-        // 等待子线程处理结束
-        boolean[] res = new boolean[2];
-        while (true) {
-            try {
-                // 判断子线程是否结束
-                if (future1.isDone() && future2.isDone()) {
-                    res[0] = future1.get();
-                    res[1] = future2.get();
-                    break;
-                } else {
-                    Thread.sleep(1);
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                LOGGER.error("carry out method name: executeJudgeAsync");
-                LOGGER.error("Error message:", e);
-            }
-        }
-        // 线程结束，并且处理结果正确后，计算总分数
-        if (res[0] && res[1]) {
-            calculateTotalScore(examId, userData.getUserid());
-        }
     }
 
     /**

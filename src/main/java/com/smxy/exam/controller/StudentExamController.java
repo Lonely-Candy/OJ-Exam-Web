@@ -50,12 +50,15 @@ public class StudentExamController {
 
     private ExamAsyncService examAsyncService;
 
+    private IExamService examService;
+
     @Autowired
     public StudentExamController(IExamRecordService examRecordService, IExamProcedureBankService examProcedureBankService
             , IExamCompletionBankService examCompletionBankService, IExamProcedureProblemService examProcedureProblemService
             , IExamCompletionProblemService examCompletionProblemService, ExamAsyncService examAsyncService
             , IExamCompletionStatusService examCompletionStatusService
-            , IExamProcedureStatusService examProcedureStatusService) {
+            , IExamProcedureStatusService examProcedureStatusService, IExamService examService) {
+        this.examService = examService;
         this.examRecordService = examRecordService;
         this.examProcedureBankService = examProcedureBankService;
         this.examCompletionBankService = examCompletionBankService;
@@ -77,8 +80,15 @@ public class StudentExamController {
     @GetMapping("/beginExam/{examId}")
     public String beginExam(@PathVariable("examId") Integer examId, HttpSession session, Model model) {
         User user = (com.smxy.exam.beans.User) session.getAttribute("loginUserData");
-        Wrapper<ExamRecord> queryWrapper = new QueryWrapper<ExamRecord>().eq("exam_id", examId)
-                .eq("user_id", user.getUserid());
+        Exam exam = examService.getById(examId);
+        if (exam.getFlag() == -1) {
+            return "redirect:/exam/examList?message=exam_isNotStarted";
+        }
+        if(exam.getFlag() == 0) {
+            return "redirect:/exam/examList?message=exam_isOver";
+        }
+        Wrapper<ExamRecord> queryWrapper = new QueryWrapper<ExamRecord>()
+                .eq("exam_id", examId).eq("user_id", user.getUserid());
         ExamRecord examRecord = examRecordService.getOne(queryWrapper);
         if (examRecord == null || examRecord.getSubmitTime() == null) {
             if (examRecord == null) {
