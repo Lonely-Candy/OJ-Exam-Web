@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>学生考试导航栏</title>
+</head>
+<body>
+<ul th:fragment="studentExamNav(activeUrl, examId)" class="nav nav-tabs">
+    <li th:class="${activeUrl == 'completionProblemList' ? 'active' : 'nav-item'}">
+        <a th:href="@{${activeUrl == 'completionProblemList' ? '#' : '/student/beginExam/' + examId}}">填空题列表</a>
+    </li>
+    <li th:class="${activeUrl == 'programmeProblemList' ? 'active' : 'nav-item'}">
+        <a th:href="@{${activeUrl == 'programmeProblemList' ? '#' : '/student/toProgrammeProblemListPage/' + examId}}">编程题列表</a>
+    </li>
+    <li th:class="${activeUrl == 'submitConditon' ? 'active' : 'nav-item'}">
+        <a th:href="@{${activeUrl == 'submitConditon' ? '#' : '/exam/toStudentList/' + examId}}">提交记录</a>
+    </li>
+    <li th:class="${activeUrl == 'ranking' ? 'active' : 'nav-item'}">
+        <a th:href="@{${activeUrl == 'ranking' ? '#' : '/exam/toRanking/' + examId}}">排名</a>
+    </li>
+</ul>
+</body>
+</html>

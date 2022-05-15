@@ -5,10 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.smxy.exam.beans.*;
-import com.smxy.exam.myenum.ProblemTypeEnum;
 import com.smxy.exam.myenum.ProgrammeResultEnum;
 import com.smxy.exam.service.*;
-import com.smxy.exam.util.ExamResultUtil;
 import com.smxy.exam.util.ResultDataUtil;
 import com.smxy.exam.util.StringUtil;
 import lombok.Data;
@@ -224,7 +222,7 @@ public class ExamProblemController {
         model.addAttribute("programmeProblems", programmeProblems);
         model.addAttribute("completionProblemScores", completionProblemScores);
         model.addAttribute("programmeProblemScores", programmeProblemScores);
-        return "exam/questionSet/problemlist";
+        return "exam/questionSet/problemList";
     }
 
     /**
@@ -400,7 +398,7 @@ public class ExamProblemController {
         List<ExamRecord> examRecords = examRecordService.list(queryWrapper);
         model.addAttribute("examId", examId);
         model.addAttribute("examRecords", examRecords);
-        return "exam/questionSet/studentlist";
+        return "exam/questionSet/studentList";
     }
 
     /**

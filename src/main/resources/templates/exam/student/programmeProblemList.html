@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>题目列表</title>
+    <title>编程填空题列表</title>
     <link rel="icon" th:href="@{/favicon.ico}">
 
     <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
@@ -19,26 +19,15 @@
 
 <body class="gray-bg">
 <div class="wrapper wrapper-content">
-    <div class="row">
+    <!-- 引入考试相关导航 -->
+    <div th:replace="~{navigation/studentExamNav :: studentExamNav('programmeProblemList', ${examId})}"></div>
+    <div style="margin-top: 20px" class="row">
+        <!-- 编程填空题题目列表 -->
         <div class="col-sm-3">
             <div class="ibox float-e-margins">
                 <div class="ibox-content">
                     <div class="file-manager">
-                        <h3>题目列表</h3>
-                        <!-- 填空题题目导航 -->
-                        <h5 class="tag-title">填空题</h5>
-                        <ul class="tag-list" style="padding: 0">
-                            <li th:each="problem, problemStat:${completionProblems}">
-                                <a th:id="'c_' + ${problemStat.count - 1}"
-                                   th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'completion\')'">
-                                    [[${problemStat.count}]]
-                                </a>
-                            </li>
-                        </ul>
-                        <div class="clearfix"></div>
-                        <div class="hr-line-dashed"></div>
-                        <!-- 编程填空题题目导航 -->
-                        <h5 class="tag-title">编程填空题</h5>
+                        <h3>编程填空题-题目导航</h3>
                         <ul class="tag-list" style="padding: 0">
                             <li th:each="problem, problemStat:${programmeProblems}">
                                 <a th:id="'p_' + ${problemStat.count - 1}"
@@ -49,7 +38,7 @@
                         </ul>
                         <div class="clearfix"></div>
                         <div class="hr-line-dashed"></div>
-                        <button onclick="submitExam()" class="btn btn-info btn-block" type="button">提交考试</button>
+                        <button onclick="submitExam()" class="btn btn-info btn-block" type="button">提交</button>
                         <div class="hr-line-dashed"></div>
                     </div>
                 </div>
@@ -57,12 +46,9 @@
         </div>
         <div class="col-sm-9 animated fadeInRight">
             <div class="row">
+                <!-- 详细内容展示 -->
                 <div class="col-sm-12">
-                    <!-- 详细内容展示 -->
-                    <!-- 引入考试相关导航 -->
-                    <div th:replace="~{navigation/examNav :: examNav('problemlist', ${examId})}"></div>
                     <!-- 题目列表 -->
-                    <!-- 具体内容 -->
                     <div class="col">
                         <div class="tab-content">
                             <div class="ibox float-e-margins">
@@ -104,24 +90,22 @@
 <script type="text/javascript" th:src="@{/webjars/wangeditor/4.7.5/dist/wangEditor.min.js}"></script>
 <!-- highlight -->
 <script type="text/javascript" th:src="@{/highlight/highlight.min.js}"></script>
-<script>
+<script th:inline="javascript">
+    // 题目数据
+    let programmeProblems = [[${programmeProblems}]];
+
     $(function () {
         $('.full-height-scroll').slimScroll({
             height: '100%'
         });
     });
-</script>
-<script th:inline="javascript">
-    // 题目数据
-    let completionProblems = [[${completionProblems}]];
-    let programmeProblems = [[${programmeProblems}]];
 
     /**
      * 题目导航标签失去焦点后
      */
-    let loadProblemATagStyle = function (type, index, answerArray) {
+    let loadProblemATagStyle = function (index, answerArray) {
         let isFilled = true;
-        let id = type == "completion" ? "#c_" + index : "#p_" + index;
+        let id = "#p_" + index;
         for (let i = 0; i < answerArray.length; i++) {
             if ($.trim(answerArray[i]) == "") {
                 isFilled = false;
@@ -140,27 +124,27 @@
      * @param index 题号
      * @param type 题目类型
      */
-    let loadProblemData = function (index, type) {
+    let loadProblemData = function (index) {
         let proId = "#problem_id";
         let proAuthor = "#problem_author";
         let proContent = "#problem_content";
         let proTotalPoints = "#problem_totalPoints";
-        let problemData = type == "completion" ? completionProblems : programmeProblems;
+        let problemData = programmeProblems;
         if (problemData == null || problemData.length == 0) {
             return;
         }
         // 设置显示内容
-        $(proId).text(type.charAt(0).toUpperCase() + "-" + (index + 1));
+        $(proId).text("P-" + (index + 1));
         $(proAuthor).text("出题人: " + problemData[index].adminid);
         $(proContent).html(problemData[index].replaceContextNoAnswer);
         $(proTotalPoints).text("分数: " + problemData[index].totalPoints);
         // 设置保存的答案
-        let answerArray = getLocalAnswerArray(index, type);
-        loadProblemATagStyle(type, index, answerArray);
+        let answerArray = getLocalAnswerArray(index);
+        loadProblemATagStyle(index, answerArray);
         // 给input输入框添加 onchange 事件
         let inputs = $("#problem_content").find(".input-answer").find(".textarea");
         for (let i = 0; i < inputs.length; i++) {
-            $(inputs[i]).attr("onblur", 'inputOnchange(' + index + ', this, \'' + type + '\')').html(answerArray[i]);
+            $(inputs[i]).attr("onblur", 'inputOnchange(' + index + ', this)').html(answerArray[i]);
         }
     }
 
@@ -168,23 +152,16 @@
      * 提交考试
      */
     const submitExam = function () {
-        let completionAnswers = new Array();
         let programmeAnswers = new Array();
         // 获取所有的答案
-        for (let i = 0; i < completionProblems.length; i++) {
-            let answer = getLocalAnswerArray(i, "completion");
-            completionAnswers.push(answer);
-        }
         for (let i = 0; i < programmeProblems.length; i++) {
             let answer = getLocalAnswerArray(i, "programme");
             programmeAnswers.push(answer);
         }
-        console.log(completionAnswers);
         console.log(programmeAnswers);
         // 封装表单数据
         let submitData = {
             "examId": [[${examId}]],
-            "completionAnswers": completionAnswers,
             "programmeAnswers": programmeAnswers
         }
         // 提示信息
@@ -207,13 +184,11 @@
                             "Accept": "application/json",
                             "Content-Type": "application/json"
                         },
-                        url: "/student/submitExam",
+                        url: "/student/submitProgrammeProblem",
                         success: function (data, status) {
                             if (status) {
                                 if (data.code == 777) {
-                                    swal({title: "提交成功", type: "success"}, function () {
-                                        history.go(-1);
-                                    })
+                                    swal({title: "提交成功", type: "success"})
                                 } else {
                                     swal("提交失败", data.message, 'warning');
                                 }
@@ -232,28 +207,23 @@
     /**
      * 答案输入保存
      */
-    const inputOnchange = function (index, e, type) {
-        let answerArray = getLocalAnswerArray(index, type);
+    const inputOnchange = function (index, e) {
+        let answerArray = getLocalAnswerArray(index);
         let idSuffix = $(e).parents("span")[0].id.split("_")[2];
-        let answerName = type == "completion" ? "cAnswers_" + index : "pAnswers_" + index;
+        let answerName = "pAnswers_" + index;
         answerArray[parseInt(idSuffix)] = $(e).html();
-        loadProblemATagStyle(type, index, answerArray);
+        loadProblemATagStyle(index, answerArray);
         sessionStorage.setItem(answerName, JSON.stringify(answerArray));
     }
 
     /**
      * 获取保存在本地的答案
      */
-    const getLocalAnswerArray = function (index, type) {
+    const getLocalAnswerArray = function (index) {
         let answerName;
         let problems;
-        if (type == "completion") {
-            answerName = "cAnswers_" + index;
-            problems = completionProblems;
-        } else if (type == "programme") {
-            answerName = "pAnswers_" + index;
-            problems = programmeProblems;
-        }
+        answerName = "pAnswers_" + index;
+        problems = programmeProblems;
         let answerArray = JSON.parse(sessionStorage.getItem(answerName));
         if (answerArray == null) {
             answerArray = new Array(problems[index].blankSum);
@@ -265,12 +235,9 @@
      * 页面加载完毕后初始化文本编辑器和题目显示
      */
     $(document).ready(function () {
-        loadProblemData(0, "completion");
-        for (let i = 0; i < completionProblems.length; i++) {
-            loadProblemATagStyle("completion", i, getLocalAnswerArray(i, "completion"));
-        }
+        loadProblemData(0);
         for (let i = 0; i < programmeProblems.length; i++) {
-            loadProblemATagStyle("programme", i, getLocalAnswerArray(i, "programme"));
+            loadProblemATagStyle(i, getLocalAnswerArray(i));
         }
     });
 </script>

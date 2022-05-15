@@ -70,7 +70,7 @@ public class StudentExamController {
     }
 
     /**
-     * 学生考试考试
+     * 学生开始考试-跳转至填空题考题界面
      *
      * @param examId
      * @return java.lang.String
@@ -84,7 +84,7 @@ public class StudentExamController {
         if (exam.getFlag() == -1) {
             return "redirect:/exam/examList?message=exam_isNotStarted";
         }
-        if(exam.getFlag() == 0) {
+        if (exam.getFlag() == 0) {
             return "redirect:/exam/examList?message=exam_isOver";
         }
         Wrapper<ExamRecord> queryWrapper = new QueryWrapper<ExamRecord>()
@@ -96,48 +96,59 @@ public class StudentExamController {
                         .setUserId(user.getUserid()).setUserName(user.getName());
                 examRecordService.save(examRecord);
             }
-            List<ProblemBankController.ProblemShowData>[] problemShowData = getProblemShowData(examId, false);
-            model.addAttribute("programmeProblems", problemShowData[0]);
-            model.addAttribute("completionProblems", problemShowData[1]);
-            return "exam/student/problemlist";
+            List<ProblemBankController.ProblemShowData> completionProblems = getCompletionProblemList(examId, false);
+            model.addAttribute("completionProblems", completionProblems);
         }
-        return "redirect:/exam/examList?message=exam_isSubmit";
+        return "exam/student/completionProblemList";
     }
 
     /**
-     * 查询考试题目数据
+     * 跳转编程填空题考题界面
+     *
+     * @param examId
+     * @param model
+     * @return java.lang.String
+     * @author 范颂扬
+     * @date 2022-05-15 22:15
+     */
+    @GetMapping("/toProgrammeProblemListPage/{examId}")
+    public String toProgrammeProblemListPage(@PathVariable("examId") Integer examId, Model model) {
+        Exam exam = examService.getById(examId);
+        if (exam.getFlag() == -1) {
+            return "redirect:/exam/examList?message=exam_isNotStarted";
+        }
+        if (exam.getFlag() == 0) {
+            return "redirect:/exam/examList?message=exam_isOver";
+        }
+        List<ProblemBankController.ProblemShowData> programmeProblem = getProgrammeProblemList(examId, false);
+        model.addAttribute("programmeProblems", programmeProblem);
+        return "exam/student/programmeProblemList";
+    }
+
+    /**
+     * 获取编程填空题对应的题目集
      *
      * @param examId
      * @param isShowAnswer
-     * @return java.util.List<com.smxy.exam.controller.ProblemBankController.ProblemShowData>[]
+     * @return java.util.List<com.smxy.exam.controller.ProblemBankController.ProblemShowData>
      * @author 范颂扬
-     * @date 2022-04-23 15:25
+     * @date 2022-05-15 21:58
      */
-    private List<ProblemBankController.ProblemShowData>[] getProblemShowData(Integer examId, boolean isShowAnswer) {
+    private List<ProblemBankController.ProblemShowData> getProgrammeProblemList(Integer examId, boolean isShowAnswer) {
         // 查询考试中的题目数据
         Wrapper<ExamProcedureProblem> examProcedureQueryWrapper = new QueryWrapper<ExamProcedureProblem>().eq("exam_id", examId);
-        Wrapper<ExamCompletionProblem> examCompletionQueryWrapper = new QueryWrapper<ExamCompletionProblem>().eq("exam_id", examId);
         List<ExamProcedureProblem> examProcedureProblemList = examProcedureProblemService.list(examProcedureQueryWrapper);
-        List<ExamCompletionProblem> examCompletionProblemList = examCompletionProblemService.list(examCompletionQueryWrapper);
         // 获取考试中的题目ID
         List<Integer> procedureProblemIds = examProcedureProblemList.stream().map(ExamProcedureProblem::getProblemId).collect(Collectors.toList());
-        List<Integer> completionProblemIds = examCompletionProblemList.stream().map(ExamCompletionProblem::getProblemId).collect(Collectors.toList());
-        // 查询题库中的题目数据
-        List<ExamCompletionBank> completions = new ArrayList<>();
         List<ExamProcedureBank> procedures = new ArrayList<>();
-        if (procedureProblemIds != null && procedureProblemIds.size() != 0) {
+        // 查询题库中的题目数据
+        if (procedureProblemIds.size() != 0) {
             procedures = examProcedureBankService.listByIds(procedureProblemIds);
-        }
-        if (completionProblemIds != null && completionProblemIds.size() != 0) {
-            completions = examCompletionBankService.listByIds(completionProblemIds);
         }
         // 将考试中的题目ID和分数封装成 Map
         Map<Integer, String> procedureIdAndScoreMap = examProcedureProblemList.stream()
                 .collect(Collectors.toMap(ExamProcedureProblem::getProblemId, ExamProcedureProblem::getScore));
-        Map<Integer, String> completionIdAndScoreMap = examCompletionProblemList.stream()
-                .collect(Collectors.toMap(ExamCompletionProblem::getProblemId, ExamCompletionProblem::getScore));
         List<ProblemBankController.ProblemShowData> procedureProblemShowDataList = new ArrayList<>();
-        List<ProblemBankController.ProblemShowData> completionProblemShowDataList = new ArrayList<>();
         // 将题目详细的内容和考试中题目的分数进行组合
         for (int i = 0; i < procedures.size(); i++) {
             ExamProcedureBank procedure = procedures.get(i);
@@ -148,6 +159,34 @@ public class StudentExamController {
             }
             procedureProblemShowDataList.add(problemShowData);
         }
+        return procedureProblemShowDataList;
+    }
+
+    /**
+     * 获取填空题对应的题目集
+     *
+     * @param examId
+     * @param isShowAnswer
+     * @return java.util.List<com.smxy.exam.controller.ProblemBankController.ProblemShowData>[]
+     * @author 范颂扬
+     * @date 2022-04-23 15:25
+     */
+    private List<ProblemBankController.ProblemShowData> getCompletionProblemList(Integer examId, boolean isShowAnswer) {
+        // 查询考试中的题目数据
+        Wrapper<ExamCompletionProblem> examCompletionQueryWrapper = new QueryWrapper<ExamCompletionProblem>().eq("exam_id", examId);
+        List<ExamCompletionProblem> examCompletionProblemList = examCompletionProblemService.list(examCompletionQueryWrapper);
+        // 获取考试中的题目ID
+        List<Integer> completionProblemIds = examCompletionProblemList.stream().map(ExamCompletionProblem::getProblemId).collect(Collectors.toList());
+        // 查询题库中的题目数据
+        List<ExamCompletionBank> completions = new ArrayList<>();
+        if (completionProblemIds.size() != 0) {
+            completions = examCompletionBankService.listByIds(completionProblemIds);
+        }
+        // 将考试中的题目ID和分数封装成 Map
+        Map<Integer, String> completionIdAndScoreMap = examCompletionProblemList.stream()
+                .collect(Collectors.toMap(ExamCompletionProblem::getProblemId, ExamCompletionProblem::getScore));
+        List<ProblemBankController.ProblemShowData> completionProblemShowDataList = new ArrayList<>();
+        // 将题目详细的内容和考试中题目的分数进行组合
         for (int i = 0; i < completions.size(); i++) {
             ExamCompletionBank completion = completions.get(i);
             completion.setScore(completionIdAndScoreMap.get(completion.getId()));
@@ -157,11 +196,11 @@ public class StudentExamController {
             }
             completionProblemShowDataList.add(problemShowData);
         }
-        return new List[]{procedureProblemShowDataList, completionProblemShowDataList};
+        return completionProblemShowDataList;
     }
 
     /**
-     * 提交考试
+     * 提交填空题
      *
      * @param submitData
      * @param session
@@ -171,28 +210,18 @@ public class StudentExamController {
      */
     @ResponseBody
     @Transactional(rollbackFor = {Exception.class})
-    @PostMapping("/submitExam")
-    public ResultData submitExam(@RequestBody SubmitDataPackage submitData, HttpSession session) {
+    @PostMapping("/submitCompletionProblem")
+    public ResultData submitCompletionProblem(@RequestBody SubmitCompletionDataPackage submitData, HttpSession session) {
         // 获取用户数据
         User userData = (User) session.getAttribute("loginUserData");
         // 获取考试题目
-        List<ProblemBankController.ProblemShowData>[] problemShowData = getProblemShowData(submitData.examId, true);
-        List<ProblemBankController.ProblemShowData> programmeProblems = problemShowData[0];
-        List<ProblemBankController.ProblemShowData> completionProblems = problemShowData[1];
+        List<ProblemBankController.ProblemShowData> completionProblems = getCompletionProblemList(submitData.examId, true);
         List<ExamCompletionStatus> completionStatuses = null;
         // 填空题保存提交记录
         if (completionProblems != null && completionProblems.size() != 0) {
             completionStatuses = saveCompletionSubmitRecord(userData, submitData, completionProblems);
             if (completionStatuses == null) {
                 return ResultDataUtil.error(666, "保存填空题失败");
-            }
-        }
-        // 编程填题保存提交记录
-        List<ExamProcedureStatus> procedureStatuses = null;
-        if (programmeProblems != null && programmeProblems.size() != 0) {
-            procedureStatuses = saveProcedureSubmitRecord(userData, submitData, programmeProblems);
-            if (procedureStatuses == null) {
-                return ResultDataUtil.error(666, "保存编程填空题失败");
             }
         }
         // 提交成功后，添加结束考试记录
@@ -203,24 +232,68 @@ public class StudentExamController {
             return ResultDataUtil.error(666, "考试记录保存失败");
         }
         // 开启判题线程
-        examAsyncService.executeJudgeAsync(userData, procedureStatuses, completionStatuses
-                , submitData.examId, completionProblems, programmeProblems);
+        examAsyncService.executeJudgeAsync(userData, null, completionStatuses
+                , submitData.examId, completionProblems, null);
         return ResultDataUtil.success();
     }
 
     /**
-     * 提交考试答案封装
+     * 提交编程填空题
+     *
+     * @param submitData
+     * @param session
+     * @return com.smxy.exam.beans.ResultData
+     * @author 范颂扬
+     * @date 2022-05-15 22:07
+     */
+    @ResponseBody
+    @Transactional(rollbackFor = {Exception.class})
+    @PostMapping("/submitProgrammeProblem")
+    public ResultData submitProgrammeProblem(@RequestBody SubmitProgrammeDataPackage submitData, HttpSession session) {
+        // 获取用户数据
+        User userData = (User) session.getAttribute("loginUserData");
+        // 获取考试题目
+        List<ProblemBankController.ProblemShowData> programmeProblems = getProgrammeProblemList(submitData.examId, true);
+        // 编程填题保存提交记录
+        List<ExamProcedureStatus> procedureStatuses = null;
+        if (programmeProblems != null && programmeProblems.size() != 0) {
+            procedureStatuses = saveProcedureSubmitRecord(userData, submitData, programmeProblems);
+            if (procedureStatuses == null) {
+                return ResultDataUtil.error(666, "保存编程填空题失败");
+            }
+        }
+        // 开启判题线程
+        examAsyncService.executeJudgeAsync(userData, procedureStatuses, null, submitData.examId, null, programmeProblems);
+        return ResultDataUtil.success();
+    }
+
+    /**
+     * 提交填空题答案封装
      *
      * @author 范颂扬
      * @create 2022-04-26 17:20
      */
     @Data
     @Accessors(chain = true)
-    public static class SubmitDataPackage {
+    public static class SubmitCompletionDataPackage {
 
         private Integer examId;
 
         private List<String[]> completionAnswers;
+
+    }
+
+    /**
+     * 提交编程填空题答案封装
+     *
+     * @author 范颂扬
+     * @create 2022-05-15 22:05
+     */
+    @Data
+    @Accessors(chain = true)
+    public static class SubmitProgrammeDataPackage {
+
+        private Integer examId;
 
         private List<String[]> programmeAnswers;
 
@@ -236,7 +309,7 @@ public class StudentExamController {
      * @author 范颂扬
      * @date 2022-04-29 17:53
      */
-    private List<ExamCompletionStatus> saveCompletionSubmitRecord(User userData, SubmitDataPackage submitData
+    private List<ExamCompletionStatus> saveCompletionSubmitRecord(User userData, SubmitCompletionDataPackage submitData
             , List<ProblemBankController.ProblemShowData> completionProblems) {
         // 封装提交记录
         List<ExamCompletionStatus> completionStatuses = new ArrayList<>();
@@ -267,7 +340,7 @@ public class StudentExamController {
      * @author 范颂扬
      * @date 2022-04-29 20:52
      */
-    private List<ExamProcedureStatus> saveProcedureSubmitRecord(User userData, SubmitDataPackage submitData
+    private List<ExamProcedureStatus> saveProcedureSubmitRecord(User userData, SubmitProgrammeDataPackage submitData
             , List<ProblemBankController.ProblemShowData> programmeProblems) {
         List<ExamProcedureStatus> procedureStatuses = new ArrayList<>();
         for (int i = 0; i < programmeProblems.size(); i++) {

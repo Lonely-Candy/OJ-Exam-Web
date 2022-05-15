@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>填空题题目列表</title>
+    <link rel="icon" th:href="@{/favicon.ico}">
+
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <!-- Sweet Alert -->
+    <link th:href="@{/hAdmin/css/plugins/sweetalert/sweetalert.css}" rel="stylesheet">
+    <!-- highlight -->
+    <link th:href="@{/highlight/default.min.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/iCheck/custom.css}" rel="stylesheet">
+    <link th:href="@{/css/mycss.css}" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <!-- 引入考试相关导航 -->
+    <div th:replace="~{navigation/studentExamNav :: studentExamNav('completionProblemList', ${examId})}"></div>
+    <div style="margin-top: 20px" class="row">
+        <!-- 填空题题目导航 -->
+        <div class="col-sm-3">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <div class="file-manager">
+                        <h3>填空题-题目导航</h3>
+                        <ul class="tag-list" style="padding: 0">
+                            <li th:each="problem, problemStat:${completionProblems}">
+                                <a th:id="'c_' + ${problemStat.count - 1}"
+                                   th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'completion\')'">
+                                    [[${problemStat.count}]]
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                        <div class="hr-line-dashed"></div>
+                        <button onclick="submitExam()" class="btn btn-info btn-block" type="button">提交</button>
+                        <div class="hr-line-dashed"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-9 animated fadeInRight">
+            <div class="row">
+                <div class="col-sm-12">
+                    <!-- 题目列表 -->
+                    <div class="col">
+                        <div class="tab-content">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5><strong id="problem_id"></strong></h5>
+                                    <div class="ibox-tools">
+                                        <span id="problem_author" class="label label-primary"></span>
+                                        <span id="problem_totalPoints"
+                                              class="badge badge-success pull-right"></span>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    <div class="feed-activity-list">
+                                        <div class="feed-element">
+                                            <div class="media-body ">
+                                                <div id="problem_content"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
+<script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
+<script th:src="@{/hAdmin/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
+<!-- Sweet alert -->
+<script th:src="@{/hAdmin/js/plugins/sweetalert/sweetalert.min.js}"></script>
+<!-- 自定义js -->
+<script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
+<!-- wangEditor -->
+<script type="text/javascript" th:src="@{/webjars/wangeditor/4.7.5/dist/wangEditor.min.js}"></script>
+<!-- highlight -->
+<script type="text/javascript" th:src="@{/highlight/highlight.min.js}"></script>
+<script th:inline="javascript">
+    // 题目数据
+    let completionProblems = [[${completionProblems}]];
+
+    $(function () {
+        $('.full-height-scroll').slimScroll({
+            height: '100%'
+        });
+    });
+
+    /**
+     * 题目导航标签失去焦点后
+     */
+    let loadProblemATagStyle = function (index, answerArray) {
+        let isFilled = true;
+        let id = "#c_" + index;
+        for (let i = 0; i < answerArray.length; i++) {
+            if ($.trim(answerArray[i]) == "") {
+                isFilled = false;
+                break;
+            }
+        }
+        if (isFilled) {
+            $(id).attr("class", 'answer_a_filled');
+        } else {
+            $(id).attr("class", 'answer_a_unfilled');
+        }
+    }
+
+    /**
+     * 加载题目数据
+     * @param index 题号
+     * @param type 题目类型
+     */
+    let loadProblemData = function (index) {
+        let proId = "#problem_id";
+        let proAuthor = "#problem_author";
+        let proContent = "#problem_content";
+        let proTotalPoints = "#problem_totalPoints";
+        let problemData = completionProblems;
+        if (problemData == null || problemData.length == 0) {
+            return;
+        }
+        // 设置显示内容
+        $(proId).text("C-" + (index + 1));
+        $(proAuthor).text("出题人: " + problemData[index].adminid);
+        $(proContent).html(problemData[index].replaceContextNoAnswer);
+        $(proTotalPoints).text("分数: " + problemData[index].totalPoints);
+        // 设置保存的答案
+        let answerArray = getLocalAnswerArray(index);
+        loadProblemATagStyle(index, answerArray);
+        // 给input输入框添加 onchange 事件
+        let inputs = $("#problem_content").find(".input-answer").find(".textarea");
+        for (let i = 0; i < inputs.length; i++) {
+            $(inputs[i]).attr("onblur", 'inputOnchange(' + index + ', this)').html(answerArray[i]);
+        }
+    }
+
+    /**
+     * 提交考试
+     */
+    const submitExam = function () {
+        let completionAnswers = new Array();
+        // 获取所有的答案
+        for (let i = 0; i < completionProblems.length; i++) {
+            let answer = getLocalAnswerArray(i, "completion");
+            completionAnswers.push(answer);
+        }
+        console.log(completionAnswers);
+        // 封装表单数据
+        let submitData = {
+            "examId": [[${examId}]],
+            "completionAnswers": completionAnswers,
+        }
+        // 提示信息
+        swal({
+                title: "您要提交考试了吗",
+                text: "提交考试后，将无法继续作答！",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dd6b55",
+                confirmButtonText: "是的，我要提交！",
+                cancelButtonText: "让我再考虑一下…",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: 'post',
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        url: "/student/submitExam",
+                        success: function (data, status) {
+                            if (status) {
+                                if (data.code == 777) {
+                                    swal({title: "提交成功", type: "success"}, function () {
+                                        history.go(-1);
+                                    })
+                                } else {
+                                    swal("提交失败", data.message, 'warning');
+                                }
+                            } else {
+                                swal("服务器异常", "请联系管理员", "error");
+                            }
+                        },
+                        data: JSON.stringify(submitData)
+                    });
+                } else {
+                    swal("已取消", "您取消了提交操作！", "error");
+                }
+            });
+    }
+
+    /**
+     * 答案输入保存
+     */
+    const inputOnchange = function (index, e) {
+        let answerArray = getLocalAnswerArray(index);
+        let idSuffix = $(e).parents("span")[0].id.split("_")[2];
+        let answerName = "cAnswers_" + index;
+        answerArray[parseInt(idSuffix)] = $(e).html();
+        loadProblemATagStyle(index, answerArray);
+        sessionStorage.setItem(answerName, JSON.stringify(answerArray));
+    }
+
+    /**
+     * 获取保存在本地的答案
+     */
+    const getLocalAnswerArray = function (index) {
+        let answerName;
+        let problems;
+        answerName = "cAnswers_" + index;
+        problems = completionProblems;
+        let answerArray = JSON.parse(sessionStorage.getItem(answerName));
+        if (answerArray == null) {
+            answerArray = new Array(problems[index].blankSum);
+        }
+        return answerArray;
+    }
+
+    /**
+     * 页面加载完毕后初始化文本编辑器和题目显示
+     */
+    $(document).ready(function () {
+        loadProblemData(0);
+        for (let i = 0; i < completionProblems.length; i++) {
+            loadProblemATagStyle(i, getLocalAnswerArray(i));
+        }
+    });
+</script>
+</body>
+</html>
