@@ -60,10 +60,6 @@ public class ExamAsyncServiceImpl implements ExamAsyncService {
             , List<ProblemBankController.ProblemShowData> completionProblems
             , List<ProblemBankController.ProblemShowData> programmeProblems) {
         LOGGER.info("judge async begin");
-        // 将题目ID和测试数据对应的分数字符串映射成 Map
-        Map<Integer, String> proIdMapScores = programmeProblems.stream()
-                .collect(Collectors.toMap(ProblemBankController.ProblemShowData::getId
-                        , ProblemBankController.ProblemShowData::getScore));
         // 线程执行结果集
         // 1. 填空题---判题处理(从线程池中启动线程进行处理)
         Future<Boolean> future1 = new AsyncResult<>(true);
@@ -73,6 +69,9 @@ public class ExamAsyncServiceImpl implements ExamAsyncService {
         // 2. 编程填空题---处理(从线程池中启动线程进行处理)
         Future<Boolean> future2 = new AsyncResult<>(true);
         if (programmeProblems != null && programmeProblems.size() != 0) {
+            Map<Integer, String> proIdMapScores = programmeProblems.stream()
+                    .collect(Collectors.toMap(ProblemBankController.ProblemShowData::getId
+                            , ProblemBankController.ProblemShowData::getScore));
             future2 = examJudgeAsyncService.executeExamProgrammeJudgeAsync(userData, procedureStatuses, proIdMapScores);
         }
     }

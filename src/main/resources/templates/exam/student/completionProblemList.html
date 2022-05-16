@@ -17,53 +17,58 @@
     <link th:href="@{/css/mycss.css}" rel="stylesheet">
 </head>
 
-<body class="gray-bg">
-<div class="wrapper wrapper-content">
-    <!-- 引入考试相关导航 -->
-    <div th:replace="~{navigation/studentExamNav :: studentExamNav('completionProblemList', ${examId})}"></div>
-    <div style="margin-top: 20px" class="row">
-        <!-- 填空题题目导航 -->
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-content">
-                    <div class="file-manager">
-                        <h3>填空题-题目导航</h3>
-                        <ul class="tag-list" style="padding: 0">
-                            <li th:each="problem, problemStat:${completionProblems}">
-                                <a th:id="'c_' + ${problemStat.count - 1}"
-                                   th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'completion\')'">
-                                    [[${problemStat.count}]]
-                                </a>
-                            </li>
-                        </ul>
-                        <div class="clearfix"></div>
-                        <div class="hr-line-dashed"></div>
-                        <button onclick="submitExam()" class="btn btn-info btn-block" type="button">提交</button>
-                        <div class="hr-line-dashed"></div>
+<body>
+<div class="container">
+    <div class="row">
+        <!-- 详细内容展示 -->
+        <main style="margin-top: 10px" role="main" class="col align-self-center">
+            <!-- 引入考试相关导航 -->
+            <div th:replace="~{navigation/studentExamNav :: studentExamNav('completionProblemList', ${examId})}"></div>
+            <div th:if="${completionProblems != null}" style="margin-top: 20px" class="row">
+                <!-- 填空题题目导航 -->
+                <div class="col-sm-3">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-content">
+                            <div class="file-manager">
+                                <h3>填空题-题目导航</h3>
+                                <ul class="tag-list" style="padding: 0">
+                                    <li th:each="problem, problemStat:${completionProblems}">
+                                        <a th:id="'c_' + ${problemStat.count - 1}"
+                                           th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'completion\')'">
+                                            [[${problemStat.count}]]
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                                <div class="hr-line-dashed"></div>
+                                <button onclick="submitExam()" class="btn btn-info btn-block" type="button">提交</button>
+                                <div class="hr-line-dashed"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-sm-9 animated fadeInRight">
-            <div class="row">
-                <div class="col-sm-12">
-                    <!-- 题目列表 -->
-                    <div class="col">
-                        <div class="tab-content">
-                            <div class="ibox float-e-margins">
-                                <div class="ibox-title">
-                                    <h5><strong id="problem_id"></strong></h5>
-                                    <div class="ibox-tools">
-                                        <span id="problem_author" class="label label-primary"></span>
-                                        <span id="problem_totalPoints"
-                                              class="badge badge-success pull-right"></span>
-                                    </div>
-                                </div>
-                                <div class="ibox-content">
-                                    <div class="feed-activity-list">
-                                        <div class="feed-element">
-                                            <div class="media-body ">
-                                                <div id="problem_content"></div>
+                <div class="col-sm-9 animated fadeInRight">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <!-- 题目列表 -->
+                            <div class="col">
+                                <div class="tab-content">
+                                    <div class="ibox float-e-margins">
+                                        <div class="ibox-title">
+                                            <h5><strong id="problem_id"></strong></h5>
+                                            <div class="ibox-tools">
+                                                <span id="problem_author" class="label label-primary"></span>
+                                                <span id="problem_totalPoints"
+                                                      class="badge badge-success pull-right"></span>
+                                            </div>
+                                        </div>
+                                        <div class="ibox-content">
+                                            <div class="feed-activity-list">
+                                                <div class="feed-element">
+                                                    <div class="media-body ">
+                                                        <div id="problem_content"></div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -73,7 +78,10 @@
                     </div>
                 </div>
             </div>
-        </div>
+            <div th:if="${completionProblems == null}" style="margin-top: 20px" class="row">
+                <h1 class="text-center">填空题题目已经提交！</h1>
+            </div>
+        </main>
     </div>
 </div>
 
@@ -154,7 +162,7 @@
         let completionAnswers = new Array();
         // 获取所有的答案
         for (let i = 0; i < completionProblems.length; i++) {
-            let answer = getLocalAnswerArray(i, "completion");
+            let answer = getLocalAnswerArray(i);
             completionAnswers.push(answer);
         }
         console.log(completionAnswers);
@@ -165,8 +173,8 @@
         }
         // 提示信息
         swal({
-                title: "您要提交考试了吗",
-                text: "提交考试后，将无法继续作答！",
+                title: "您要提交考试填空题部分答案吗",
+                text: "提交后，将无法再次进行修改！",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#dd6b55",
@@ -183,12 +191,12 @@
                             "Accept": "application/json",
                             "Content-Type": "application/json"
                         },
-                        url: "/student/submitExam",
+                        url: "/student/submitCompletionProblem",
                         success: function (data, status) {
                             if (status) {
                                 if (data.code == 777) {
                                     swal({title: "提交成功", type: "success"}, function () {
-                                        history.go(-1);
+                                        window.location.reload()
                                     })
                                 } else {
                                     swal("提交失败", data.message, 'warning');
@@ -236,9 +244,13 @@
      * 页面加载完毕后初始化文本编辑器和题目显示
      */
     $(document).ready(function () {
+        if (completionProblems == null) {
+            return;
+        }
         loadProblemData(0);
         for (let i = 0; i < completionProblems.length; i++) {
             loadProblemATagStyle(i, getLocalAnswerArray(i));
+            getLocalAnswerArray(i);
         }
     });
 </script>

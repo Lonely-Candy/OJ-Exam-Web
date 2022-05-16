@@ -5,7 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.smxy.exam.beans.*;
-import com.smxy.exam.myenum.ProgrammeResultEnum;
+import com.smxy.exam.processing.ProblemStateListData;
+import com.smxy.exam.processing.ResultData;
 import com.smxy.exam.service.*;
 import com.smxy.exam.util.ResultDataUtil;
 import com.smxy.exam.util.StringUtil;
@@ -66,7 +67,7 @@ public class ExamProblemController {
      *
      * @param index
      * @param type
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-15 16:11
      */
@@ -90,7 +91,7 @@ public class ExamProblemController {
      * @param completions
      * @param programmes
      * @param examId
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-17 15:57
      */
@@ -237,150 +238,15 @@ public class ExamProblemController {
     @GetMapping("/toStateList/{examId}")
     public String toStateListPage(@PathVariable Integer examId, Model model) {
         // 查询考试对应的所有记录
-        Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>()
-                .eq("exam_Id", examId);
+        Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>().eq("exam_Id", examId);
         List<ExamProcedureStatus> examProcedureStatuses = examProcedureStatusService.list(queryWrapper);
-        List<ProblemStateListData> problemStateListDataList = getProblemStateListData(examProcedureStatuses);
+        List<ProblemStateListData> problemStateListDataList = ProblemStateListData.getProblemStateListDataNoGroup(examProcedureStatuses);
+        problemStateListDataList.sort((o1, o2) -> {
+            return o2.getSubmitTime().compareTo(o1.getSubmitTime());
+        });
         model.addAttribute("examId", examId);
         model.addAttribute("problemStates", problemStateListDataList);
         return "exam/questionSet/submitCondition";
-    }
-
-    /**
-     * 处理获取到的编程填空题的记录
-     *
-     * @param examProcedureStatuses
-     * @return java.util.List<com.smxy.exam.controller.ExamProblemController.ProblemStateListData>
-     * @author 范颂扬
-     * @date 2022-05-10 17:50
-     */
-    private List<ProblemStateListData> getProblemStateListData(List<ExamProcedureStatus> examProcedureStatuses) {
-        // 封装数据，将题号对应的多组测试数据使用键值对对应起来
-        // Map<学号, Map<题目ID, Map<测试数据ID, List<状态>>>>
-        // 注意：这里状态使用集合，是因为，可能存在测试数据使用不同的编译器得出的分数，选出来的最高分都是相同的。
-        Map<String, Map<Integer, Map<Integer, List<ExamProcedureStatus>>>> userIdStatusMap = new HashMap<>(5);
-        for (int i = 0; i < examProcedureStatuses.size(); i++) {
-            // 获取待处理状态
-            ExamProcedureStatus pendingStatus = examProcedureStatuses.get(i);
-            // 第一层----处理学生学号
-            String userId = pendingStatus.getUserId();
-            // 查看学号是否有对应的值
-            // 学号----Map<题目ID, Map<测试数据ID, List<状态>>>
-            Map<Integer, Map<Integer, List<ExamProcedureStatus>>> proIdStatusMap = userIdStatusMap.get(userId);
-            if (proIdStatusMap == null) {
-                // 学号没有对应的值，进行初始化
-                // List<状态>
-                List<ExamProcedureStatus> statuses = new ArrayList<>();
-                statuses.add(pendingStatus);
-                // 测试数据ID
-                Integer caseId = pendingStatus.getCaseTestDataId();
-                // Map<测试数据ID, List<状态>>
-                Map<Integer, List<ExamProcedureStatus>> castIdStatusMap = new HashMap<>();
-                castIdStatusMap.put(caseId, statuses);
-                // 题目ID
-                Integer proId = pendingStatus.getProblemId();
-                // Map<题目ID, Map<测试数据ID, List<状态>>>
-                proIdStatusMap = new HashMap<>(5);
-                proIdStatusMap.put(proId, castIdStatusMap);
-            } else {
-                // 学号有对应的值，判断题目ID
-                // 第二层----处理题目ID
-                Integer proId = pendingStatus.getProblemId();
-                // 查看题目ID是否有对应的值
-                // 题目ID----Map<测试数据ID, List<状态>>
-                Map<Integer, List<ExamProcedureStatus>> caseIdStatusMap = proIdStatusMap.get(proId);
-                if (caseIdStatusMap == null) {
-                    // 题目ID没有对应的值，进行初始化
-                    // List<状态>
-                    List<ExamProcedureStatus> statuses = new ArrayList<>();
-                    statuses.add(pendingStatus);
-                    // 测试数据ID
-                    Integer castId = pendingStatus.getCaseTestDataId();
-                    // Map<测试数据ID, List<状态>>
-                    caseIdStatusMap = new HashMap<>();
-                    caseIdStatusMap.put(castId, statuses);
-                } else {
-                    // 题目ID有对应的值，判断测试数据ID
-                    // 第三层----处理测试数据ID
-                    Integer caseId = pendingStatus.getCaseTestDataId();
-                    // 测试数据ID----List<状态>
-                    List<ExamProcedureStatus> statusList = caseIdStatusMap.get(caseId);
-                    if (statusList == null) {
-                        // 测试数据ID没有对应的值，进行初始化
-                        statusList = new ArrayList<>();
-                        statusList.add(pendingStatus);
-                    } else {
-                        // 测试数据ID有对应的值，判断状态是否需要保存
-                        // 第四成----处理状态
-                        ExamProcedureStatus status = statusList.get(0);
-                        // 获分数进行判断是否带处理
-                        Float oldScore = status.getScore();
-                        Float pendingScore = pendingStatus.getScore();
-                        if (oldScore.equals(pendingScore)) {
-                            // 分数相同，加入状态集中
-                            statusList.add(pendingStatus);
-                        } else if (oldScore < pendingScore) {
-                            // 待判断状态分数更高记录显示高分
-                            statusList.clear();
-                            statusList.add(pendingStatus);
-                        }
-                    }
-                    // 第三层----结束
-                    // 更新 Map<测试数据ID, List<状态>>
-                    caseIdStatusMap.put(caseId, statusList);
-                }
-                // 第二层----结束
-                // 更新 Map<题目ID, Map<测试数据ID, List<状态>>>
-                proIdStatusMap.put(proId, caseIdStatusMap);
-            }
-            // 第一层----结束
-            // 更新 Map<学号, Map<题目ID, Map<测试数据ID, List<状态>>>>
-            userIdStatusMap.put(userId, proIdStatusMap);
-        }
-        List<ProblemStateListData> problemStateListDataList = getProblemStateListData(userIdStatusMap);
-        return problemStateListDataList;
-    }
-
-    /**
-     * 封装代码运行状态显示界面数据
-     *
-     * @param userIdStatusMap
-     * @return java.util.List<com.smxy.exam.controller.ExamProblemController.ProblemStateListData>
-     * @author 范颂扬
-     * @date 2022-05-01 17:26
-     */
-    private List<ProblemStateListData> getProblemStateListData(Map<String, Map<Integer, Map<Integer, List<ExamProcedureStatus>>>> userIdStatusMap) {
-        // 进一步封装成页面显示数据
-        List<ProblemStateListData> problemStateListDataList = new ArrayList<>();
-        for (String userId : userIdStatusMap.keySet()) {
-            Map<Integer, Map<Integer, List<ExamProcedureStatus>>> proIdStatusMap = userIdStatusMap.get(userId);
-            for (Integer proId : proIdStatusMap.keySet()) {
-                Map<Integer, List<ExamProcedureStatus>> castIdStatusMap = proIdStatusMap.get(proId);
-                ProblemStateListData problemStateListData = null;
-                for (Integer castId : castIdStatusMap.keySet()) {
-                    List<ExamProcedureStatus> statusList = castIdStatusMap.get(castId);
-                    // 是否将当前记录加入分数中
-                    // 注意：该集合中都是对应同一个测试数据下的分数，分数只需要添加一次即可
-                    boolean isAddScore = true;
-                    for (ExamProcedureStatus status : statusList) {
-                        if (problemStateListData == null) {
-                            problemStateListData = new ProblemStateListData(status);
-                        }
-                        if (isAddScore) {
-                            isAddScore = false;
-                            Float score = status.getScore();
-                            problemStateListData.addTotalScore(score);
-                        }
-                        ProblemStateListData.TestPoint testPoint = problemStateListData.getTestPoint(status);
-                        problemStateListData.getTestPoints().add(testPoint);
-                    }
-                }
-                Float totalScoreFloat = problemStateListData.getTotalScoreFloat();
-                problemStateListData.setTotalScore(StringUtil.getNumberNoInvalidZero(totalScoreFloat));
-                problemStateListDataList.add(problemStateListData);
-            }
-        }
-        return problemStateListDataList;
     }
 
     /**
@@ -413,7 +279,7 @@ public class ExamProblemController {
     @GetMapping("/toRanking/{examId}")
     public String toRankingPage(@PathVariable Integer examId, Model model) {
         // 1. 获取本场考试记录
-        Wrapper<ExamRecord> recordQueryWrapper = new QueryWrapper<ExamRecord>().eq("exam_id", examId).isNotNull("submit_time");
+        Wrapper<ExamRecord> recordQueryWrapper = new QueryWrapper<ExamRecord>().eq("exam_id", examId);
         List<ExamRecord> examRecords = examRecordService.list(recordQueryWrapper);
         // 1.1 获取键值对，key:学号 value:姓名
         Map<String, String> userIdUserNameMap = examRecords.stream().collect(Collectors.toMap(ExamRecord::getUserId, ExamRecord::getUserName));
@@ -444,10 +310,10 @@ public class ExamProblemController {
         }
         // 3. 获取本场考试的所有提交记录(编程填空题)
         Wrapper<ExamProcedureStatus> procedureStatusQueryWrapper = new QueryWrapper<ExamProcedureStatus>()
-                .eq("exam_id", examId)
-                .select("user_id, max(score) as score")
-                .groupBy("user_id", "problem_id", "case_test_data_id");
+                .eq("exam_id", examId);
         List<ExamProcedureStatus> procedureStatuses = examProcedureStatusService.list(procedureStatusQueryWrapper);
+        // 数据处理
+        procedureStatuses = implementDataProcessing(procedureStatuses);
         // 3.1 获取键值对，key:学号 value:总分(编程填空题)
         Map<String, Float> userIdTotalProcedureMap = new HashMap<>(10);
         for (ExamProcedureStatus status : procedureStatuses) {
@@ -462,10 +328,8 @@ public class ExamProblemController {
             userIdTotalProcedureMap.put(userId, score);
         }
         // 3.2 获取键值对，key:学号 value:记录(编程填空题)
-        Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>().eq("exam_id", examId);
-        List<ExamProcedureStatus> procedureStatusesList = examProcedureStatusService.list(queryWrapper);
         Map<String, List<ExamProcedureStatus>> userIdProcedureStatusMap = new HashMap<>(10);
-        for (ExamProcedureStatus status : procedureStatusesList) {
+        for (ExamProcedureStatus status : procedureStatuses) {
             String userId = status.getUserId();
             // 1) 归类记录
             List<ExamProcedureStatus> procedureStatusList = userIdProcedureStatusMap.get(userId);
@@ -500,7 +364,7 @@ public class ExamProblemController {
                     completionShowDataList.add(new CompletionShowData(examCompletionStatus));
                 }
             }
-            List<ProblemStateListData> problemStateListData = getProblemStateListData(procedureStatusList);
+            List<ProblemStateListData> problemStateListData = ProblemStateListData.getProblemStateListData(procedureStatusList);
             // 2) 获取对应的题目分数
             for (int i = 0; i < problemStateListData.size(); i++) {
                 ProblemStateListData stateListData = problemStateListData.get(i);
@@ -531,10 +395,88 @@ public class ExamProblemController {
     }
 
     /**
+     * 进行所有的编程填空题提交记录数据的处理
+     *
+     * @param procedureStatuses
+     * @return java.util.List<com.smxy.exam.beans.ExamProcedureStatus>
+     * @author 范颂扬
+     * @date 2022-05-16 19:56
+     */
+    private List<ExamProcedureStatus> implementDataProcessing(List<ExamProcedureStatus> procedureStatuses) {
+        if (procedureStatuses == null) {
+            return null;
+        }
+        List<ExamProcedureStatus> procedureStatusList = new ArrayList<>();
+        // 1. 获取键值对, Map<学号, List<记录>>
+        Map<String, List<ExamProcedureStatus>> studentIdStatusMap = new HashMap<>();
+        for (int i = 0; i < procedureStatuses.size(); i++) {
+            ExamProcedureStatus status = procedureStatuses.get(i);
+            String userId = status.getUserId();
+            List<ExamProcedureStatus> statusValue = studentIdStatusMap.get(userId);
+            if (statusValue == null) {
+                statusValue = new ArrayList<>();
+            }
+            statusValue.add(status);
+            studentIdStatusMap.put(userId, statusValue);
+        }
+        // 2. 处理每个学号对应的记录
+        for (String studentId : studentIdStatusMap.keySet()) {
+            List<ExamProcedureStatus> studentIdStatusMapValue = studentIdStatusMap.get(studentId);
+            // 2.1 将每个学生对应的记录进行分类
+            // 学生提交的多次记录，一题对应多次的提交记录
+            Map<Integer, List<ExamProcedureStatus>> proIdStatusMap = new HashMap<>(5);
+            for (int i = 0; i < studentIdStatusMapValue.size(); i++) {
+                ExamProcedureStatus status = studentIdStatusMapValue.get(i);
+                Integer problemId = status.getProblemId();
+                List<ExamProcedureStatus> proIdStatusMapValue = proIdStatusMap.get(problemId);
+                if(proIdStatusMapValue == null) {
+                    proIdStatusMapValue = new ArrayList<>();
+                }
+                proIdStatusMapValue.add(status);
+                proIdStatusMap.put(problemId, proIdStatusMapValue);
+            }
+            // 2.2 将每个学生对应的每个题目的多条记录进行分类
+            for (Integer proId : proIdStatusMap.keySet()) {
+                List<ExamProcedureStatus> statusList = proIdStatusMap.get(proId);
+                // 2.2.1 按时间进行多次提交的分割，分割后，一个时间就对应的一次提交的所有运行记录
+                Map<String, List<ExamProcedureStatus>> submitTimeStatusListMap = new TreeMap<>();
+                for (int i = 0; i < statusList.size(); i++) {
+                    ExamProcedureStatus status = statusList.get(i);
+                    String submitTime = status.getSubmitTime().toString();
+                    List<ExamProcedureStatus> submitTimeStatusListMapValue = submitTimeStatusListMap.get(submitTime);
+                    if(submitTimeStatusListMapValue == null) {
+                        submitTimeStatusListMapValue = new ArrayList<>();
+                    }
+                    submitTimeStatusListMapValue.add(status);
+                    submitTimeStatusListMap.put(submitTime, submitTimeStatusListMapValue);
+                }
+                // 2.2.2 对每次的记录进行判断，选出得分最高的，保存
+                String submitTimeKey = "";
+                Float maxScore = Float.MIN_VALUE;
+                for (String submitTime : submitTimeStatusListMap.keySet()) {
+                    List<ExamProcedureStatus> statuses = submitTimeStatusListMap.get(submitTime);
+                    Float countScore = 0f;
+                    for (int i = 0; i < statuses.size(); i++) {
+                        ExamProcedureStatus status = statuses.get(i);
+                        countScore += status.getScore();
+                    }
+                    if(maxScore.compareTo(countScore) != 1) {
+                        maxScore = countScore;
+                        submitTimeKey = submitTime;
+                    }
+                }
+                List<ExamProcedureStatus> waitSaveStatus = submitTimeStatusListMap.get(submitTimeKey);
+                procedureStatusList.addAll(waitSaveStatus);
+            }
+        }
+        return procedureStatusList;
+    }
+
+    /**
      * 修改题目分数
      *
      * @param problemArray
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-20 14:16
      */
@@ -582,7 +524,7 @@ public class ExamProblemController {
      * @param proId
      * @param examId
      * @param type
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-21 16:24
      */
@@ -613,7 +555,7 @@ public class ExamProblemController {
      * 获取对应学生详细的填空题做题记录
      *
      * @param id
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-05-10 16:57
      */
@@ -659,7 +601,7 @@ public class ExamProblemController {
      *
      * @param id
      * @param score
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-05-13 21:34
      */
@@ -680,7 +622,7 @@ public class ExamProblemController {
      *
      * @param ids
      * @param scores
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-05-14 16:47
      */
@@ -711,7 +653,7 @@ public class ExamProblemController {
                 changeIndex.add(i);
             }
             Float aFloat = testIdScoreMap.get(caseTestDataId);
-            if(aFloat == null) {
+            if (aFloat == null) {
                 aFloat = status.getScore();
             }
             testIdScoreMap.put(caseTestDataId, Float.max(aFloat, status.getScore()));
@@ -924,128 +866,6 @@ public class ExamProblemController {
             this.totalPoints = new BigDecimal(String.valueOf(totalPoints))
                     .stripTrailingZeros().toPlainString();
         }
-    }
-
-    /**
-     * 运行状态显示
-     *
-     * @author 范颂扬
-     * @create 2022-04-30 11:59
-     */
-    @Data
-    @Accessors(chain = true)
-    private class ProblemStateListData {
-
-        /**
-         * 考试ID
-         */
-        private Integer examId;
-
-        /**
-         * 题目ID
-         */
-        private Integer proId;
-
-        /**
-         * 提交时间
-         */
-        private LocalDateTime submitTime;
-
-        /**
-         * 分数(字符串，方便显示)
-         */
-        private String totalScore;
-
-        /**
-         * 数值分数
-         */
-        private Float totalScoreFloat;
-
-        /**
-         * 考试中的题号
-         */
-        private Integer proNum;
-
-        /**
-         * 用户 ID
-         */
-        private String userId;
-
-        /**
-         * 源码
-         */
-        private String source;
-
-        /**
-         * 测试点集合
-         */
-        private List<TestPoint> testPoints;
-
-        /**
-         * 测试点对应的分数
-         */
-        private Map<Integer, String> castIdScoreMap;
-
-        @Data
-        @Accessors(chain = true)
-        private class TestPoint {
-
-            private Integer id;
-
-            private Integer castId;
-
-            private String state;
-
-            private String score;
-
-            private Integer memory;
-
-            private Integer time;
-
-            private String compiler;
-
-            private String isChange;
-
-            public TestPoint() {
-                super();
-            }
-
-            public TestPoint(ExamProcedureStatus procedureStatus) {
-                this.id = procedureStatus.getId();
-                this.state = ProgrammeResultEnum.getNameByCode(procedureStatus.getResult());
-                this.castId = procedureStatus.getCaseTestDataId();
-                this.time = procedureStatus.getTime();
-                this.memory = procedureStatus.getMemory();
-                this.score = StringUtil.getNumberNoInvalidZero(procedureStatus.getScore());
-                this.compiler = procedureStatus.getCompiler();
-                this.isChange = procedureStatus.getIsChange();
-            }
-
-        }
-
-        public ProblemStateListData() {
-            super();
-        }
-
-        public ProblemStateListData(ExamProcedureStatus procedureStatus) {
-            this.examId = procedureStatus.getExamId();
-            this.proId = procedureStatus.getProblemId();
-            this.submitTime = procedureStatus.getSubmitTime();
-            this.proNum = procedureStatus.getProblemNum();
-            this.userId = procedureStatus.getUserId();
-            this.totalScoreFloat = 0f;
-            this.testPoints = new ArrayList<>();
-            this.source = procedureStatus.getSource();
-        }
-
-        public TestPoint getTestPoint(ExamProcedureStatus procedureStatus) {
-            return new TestPoint(procedureStatus);
-        }
-
-        public void addTotalScore(Float totalScoreFloat) {
-            this.totalScoreFloat += totalScoreFloat;
-        }
-
     }
 
     @Data

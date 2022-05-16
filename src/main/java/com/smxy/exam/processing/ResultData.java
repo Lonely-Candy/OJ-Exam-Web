@@ -1,4 +1,4 @@
-package com.smxy.exam.beans;
+package com.smxy.exam.processing;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

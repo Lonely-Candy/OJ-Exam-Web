@@ -75,7 +75,7 @@
                                                     </a>
                                                 </td>
                                                 <td>
-                                                    <a th:href="@{'/toEditPage/' + ${problem.id} + '?type=completion&isEdit=false'}"
+                                                    <a th:href="@{'/bank/toEditPage/' + ${problem.id} + '?type=completion&isEdit=false'}"
                                                        type="button" class="btn btn-sm btn-success">编辑
                                                     </a>
                                                     <a th:onclick="'delProblem(' + ${problem.id} + ', \'completion\')'"
@@ -107,7 +107,7 @@
                                                     </a>
                                                 </td>
                                                 <td>
-                                                    <a th:href="@{'/toEditPage/' + ${problem.id} + '?type=programme&isEdit=false'}"
+                                                    <a th:href="@{'/bank/toEditPage/' + ${problem.id} + '?type=programme&isEdit=false'}"
                                                        type="button" class="btn btn-sm btn-success">编辑
                                                     </a>
                                                     <a th:onclick="'delProblem(' + ${problem.id} + ', \'programme\')'"
@@ -437,7 +437,7 @@
      * 预览题目信息模态框
      */
     const showPreviewProblemModel = function (type, proId) {
-        $.get("/getProblem/" + proId + "?type=" + type, function (data, status) {
+        $.get("/bank/getProblem/" + proId + "?type=" + type, function (data, status) {
             if (status == "success") {
                 if (data.code == 777) {
                     let resultData = data.data;

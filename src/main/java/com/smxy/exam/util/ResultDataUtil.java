@@ -1,7 +1,7 @@
 package com.smxy.exam.util;
 
 
-import com.smxy.exam.beans.ResultData;
+import com.smxy.exam.processing.ResultData;
 
 /**
  * 返回数据封装工具类
@@ -15,7 +15,7 @@ public class ResultDataUtil {
      * 快速创建请求成功的数据封装类（带数据）
      *
      * @param o 数据
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-03-29 17:50
      */
@@ -27,7 +27,7 @@ public class ResultDataUtil {
     /**
      * 快速创建请求成功的数据封装类
      *
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-03-29 17:51
      */
@@ -40,7 +40,7 @@ public class ResultDataUtil {
      *
      * @param code    错误代码
      * @param message 提示信息
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-03-29 17:51
      */

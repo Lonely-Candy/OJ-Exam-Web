@@ -425,7 +425,7 @@
             scores += $('#score_' + (uElements.length)).val();
         }
         // 3. 发送请求
-        $.post("/addProblem", {
+        $.post("/bank/addProblem", {
             "title": title,
             "id": [[${problemData == null ? null : problemData?.id}]],
             "contentHtml": editor_content,
@@ -528,7 +528,7 @@
         let dataOut = $("#modal_data_out").val();
         let dataScore = $("#modal_data_score").val();
         if (type == 'add') {
-            $.post("/addProgrammeTestData", {
+            $.post("/bank/addProgrammeTestData", {
                 'inputData': dataInput,
                 'outData': dataOut,
                 'scoreData': dataScore,
@@ -548,7 +548,7 @@
             });
         }
         if (type == 'alter') {
-            $.post("/alterProgrammeTestData", {
+            $.post("/bank/alterProgrammeTestData", {
                 "testId": testId,
                 "proId": proId,
                 "inputData": dataInput,
@@ -587,7 +587,7 @@
             },
             function (isConfirm) {
                 if (isConfirm) {
-                    $.get("/deleteProgrammeTestData/" + proId + "/" + testId, function (data, status) {
+                    $.get("/bank/deleteProgrammeTestData/" + proId + "/" + testId, function (data, status) {
                         if (status == "success") {
                             if (data.code == 777) {
                                 swal({title: "删除成功！", text: "您已经永久删除了该测试数据。", type: "success"}, function () {
@@ -637,7 +637,7 @@
             }
             // 渲染测试数据
             if ([[${type == 'programme'}]]) {
-                $.get("/getProgrammeAllTestData/" + [[${problemData?.id}]], function (data, status) {
+                $.get("/bank/getProgrammeAllTestData/" + [[${problemData?.id}]], function (data, status) {
                     if (status == "success") {
                         if (data.code == 777) {
                             let htmlTag = "";

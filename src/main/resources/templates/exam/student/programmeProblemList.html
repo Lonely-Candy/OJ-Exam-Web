@@ -17,54 +17,60 @@
     <link th:href="@{/css/mycss.css}" rel="stylesheet">
 </head>
 
-<body class="gray-bg">
-<div class="wrapper wrapper-content">
-    <!-- 引入考试相关导航 -->
-    <div th:replace="~{navigation/studentExamNav :: studentExamNav('programmeProblemList', ${examId})}"></div>
-    <div style="margin-top: 20px" class="row">
-        <!-- 编程填空题题目列表 -->
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-content">
-                    <div class="file-manager">
-                        <h3>编程填空题-题目导航</h3>
-                        <ul class="tag-list" style="padding: 0">
-                            <li th:each="problem, problemStat:${programmeProblems}">
-                                <a th:id="'p_' + ${problemStat.count - 1}"
-                                   th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'programme\')'">
-                                    [[${problemStat.count}]]
-                                </a>
-                            </li>
-                        </ul>
-                        <div class="clearfix"></div>
-                        <div class="hr-line-dashed"></div>
-                        <button onclick="submitExam()" class="btn btn-info btn-block" type="button">提交</button>
-                        <div class="hr-line-dashed"></div>
+<body>
+<div class="container">
+    <div class="row">
+        <!-- 详细内容展示 -->
+        <main style="margin-top: 10px" role="main" class="col align-self-center">
+            <!-- 引入考试相关导航 -->
+            <div th:replace="~{navigation/studentExamNav :: studentExamNav('programmeProblemList', ${examId})}"></div>
+            <div style="margin-top: 20px" class="row">
+                <!-- 编程填空题题目列表 -->
+                <div class="col-sm-3">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-content">
+                            <div class="file-manager">
+                                <h3>编程填空题-题目导航</h3>
+                                <ul class="tag-list" style="padding: 0">
+                                    <li th:each="problem, problemStat:${programmeProblems}">
+                                        <a th:id="'p_' + ${problemStat.count - 1}"
+                                           th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'programme\')'">
+                                            [[${problemStat.count}]]
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="clearfix"></div>
+                                <div class="hr-line-dashed"></div>
+                                <button onclick="submitExam()" class="btn btn-info btn-block" type="button">提交</button>
+                                <div class="hr-line-dashed"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-sm-9 animated fadeInRight">
-            <div class="row">
-                <!-- 详细内容展示 -->
-                <div class="col-sm-12">
-                    <!-- 题目列表 -->
-                    <div class="col">
-                        <div class="tab-content">
-                            <div class="ibox float-e-margins">
-                                <div class="ibox-title">
-                                    <h5><strong id="problem_id"></strong></h5>
-                                    <div class="ibox-tools">
-                                        <span id="problem_author" class="label label-primary"></span>
-                                        <span id="problem_totalPoints"
-                                              class="badge badge-success pull-right"></span>
-                                    </div>
-                                </div>
-                                <div class="ibox-content">
-                                    <div class="feed-activity-list">
-                                        <div class="feed-element">
-                                            <div class="media-body ">
-                                                <div id="problem_content"></div>
+                <div class="col-sm-9 animated fadeInRight">
+                    <div class="row">
+                        <!-- 详细内容展示 -->
+                        <div class="col-sm-12">
+                            <!-- 题目列表 -->
+                            <div class="col">
+                                <div class="tab-content">
+                                    <div class="ibox float-e-margins">
+                                        <div class="ibox-title">
+                                            <input id="pro_id" type="hidden">
+                                            <h5><strong id="problem_num"></strong></h5>
+                                            <div class="ibox-tools">
+                                                <span id="problem_author" class="label label-primary"></span>
+                                                <span id="problem_totalPoints"
+                                                      class="badge badge-success pull-right"></span>
+                                            </div>
+                                        </div>
+                                        <div class="ibox-content">
+                                            <div class="feed-activity-list">
+                                                <div class="feed-element">
+                                                    <div class="media-body ">
+                                                        <div id="problem_content"></div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -74,7 +80,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 </div>
 
@@ -125,7 +131,8 @@
      * @param type 题目类型
      */
     let loadProblemData = function (index) {
-        let proId = "#problem_id";
+        let proId = "#pro_id";
+        let proNum = "#problem_num";
         let proAuthor = "#problem_author";
         let proContent = "#problem_content";
         let proTotalPoints = "#problem_totalPoints";
@@ -134,7 +141,8 @@
             return;
         }
         // 设置显示内容
-        $(proId).text("P-" + (index + 1));
+        $(proId).attr('value', problemData[index].id);
+        $(proNum).text("P-" + (index + 1));
         $(proAuthor).text("出题人: " + problemData[index].adminid);
         $(proContent).html(problemData[index].replaceContextNoAnswer);
         $(proTotalPoints).text("分数: " + problemData[index].totalPoints);
@@ -152,56 +160,38 @@
      * 提交考试
      */
     const submitExam = function () {
-        let programmeAnswers = new Array();
+        let index = $("#problem_num").html().split("-")[1];
+        let proId = $("#pro_id").attr('value');
         // 获取所有的答案
-        for (let i = 0; i < programmeProblems.length; i++) {
-            let answer = getLocalAnswerArray(i, "programme");
-            programmeAnswers.push(answer);
-        }
-        console.log(programmeAnswers);
+        let answer = getLocalAnswerArray(index - 1);
+        console.log(answer);
         // 封装表单数据
         let submitData = {
+            "proId": proId,
+            "proNum": index,
             "examId": [[${examId}]],
-            "programmeAnswers": programmeAnswers
+            "programmeAnswers": answer
         }
-        // 提示信息
-        swal({
-                title: "您要提交考试了吗",
-                text: "提交考试后，将无法继续作答！",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#dd6b55",
-                confirmButtonText: "是的，我要提交！",
-                cancelButtonText: "让我再考虑一下…",
-                closeOnConfirm: false,
-                closeOnCancel: false
+        $.ajax({
+            type: 'post',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
             },
-            function (isConfirm) {
-                if (isConfirm) {
-                    $.ajax({
-                        type: 'post',
-                        headers: {
-                            "Accept": "application/json",
-                            "Content-Type": "application/json"
-                        },
-                        url: "/student/submitProgrammeProblem",
-                        success: function (data, status) {
-                            if (status) {
-                                if (data.code == 777) {
-                                    swal({title: "提交成功", type: "success"})
-                                } else {
-                                    swal("提交失败", data.message, 'warning');
-                                }
-                            } else {
-                                swal("服务器异常", "请联系管理员", "error");
-                            }
-                        },
-                        data: JSON.stringify(submitData)
-                    });
+            url: "/student/submitProgrammeProblem",
+            success: function (data, status) {
+                if (status) {
+                    if (data.code == 777) {
+                        swal({title: "提交成功", type: "success"});
+                    } else {
+                        swal("提交失败", data.message, 'warning');
+                    }
                 } else {
-                    swal("已取消", "您取消了提交操作！", "error");
+                    swal("服务器异常", "请联系管理员", "error");
                 }
-            });
+            },
+            data: JSON.stringify(submitData)
+        });
     }
 
     /**
@@ -235,9 +225,15 @@
      * 页面加载完毕后初始化文本编辑器和题目显示
      */
     $(document).ready(function () {
+        if (programmeProblems == null) {
+            return;
+        }
         loadProblemData(0);
         for (let i = 0; i < programmeProblems.length; i++) {
+            // 加载导航样式
             loadProblemATagStyle(i, getLocalAnswerArray(i));
+            // 创建空白答案
+            getLocalAnswerArray(i);
         }
     });
 </script>

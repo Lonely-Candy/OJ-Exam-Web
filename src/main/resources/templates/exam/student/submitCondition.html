@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>提交记录</title>
+    <link rel="icon" th:href="@{/favicon.ico}">
+
+    <link th:href="@{/hAdmin/css/bootstrap.min.css?v=3.3.6}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/font-awesome.css?v=4.4.0}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/codemirror/codemirror.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/codemirror/ambiance.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
+    <link th:href="@{/css/mycss.css}" rel="stylesheet">
+</head>
+<body>
+
+<body>
+<div class="container">
+    <div class="row">
+    <!-- 详细内容展示 -->
+        <main style="margin-top: 10px" role="main" class="col align-self-center">
+            <!-- 引入考试相关导航 -->
+            <div th:replace="~{navigation/studentExamNav :: studentExamNav('submitCondition', ${examId})}"></div>
+            <!-- 学生提交 -->
+            <div style="margin-top: 20px">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">提交时间</th>
+                        <th scope="col">分数</th>
+                        <th scope="col">题目</th>
+                        <th scope="col">用户</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="problem, problemStat:${problemStates}">
+                        <th scope="row">[[${problem.submitTime.toString().replace('T', ' ')}]]</th>
+                        <td>
+                            <a th:onclick="'showMoreStat('+ ${problemStat.index} +')'" type="button">
+                                [[${problem.totalScore}]]
+                            </a>
+                        </td>
+                        <td>P-[[${problem.proNum}]]</td>
+                        <td>[[${problem.userId}]]</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- 详细分数模态框 -->
+<div class="modal inmodal fade" id="showScore" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span
+                        class="sr-only">Close</span></button>
+                <h4 class="modal-title">提交结果</h4>
+            </div>
+            <div class="modal-body">
+                <!-- 总状态 -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>提交时间</th>
+                        <th>分数</th>
+                        <th>题目</th>
+                        <th>用户</th>
+                    </tr>
+                    </thead>
+                    <tbody id="generalStatus"></tbody>
+                </table>
+                <hr>
+                <!-- 详细状态 -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>测试点</th>
+                        <th>结果</th>
+                        <th>编译器</th>
+                        <th>分数</th>
+                        <th>耗时</th>
+                        <th>内存</th>
+                    </tr>
+                    </thead>
+                    <tbody id="moreStatus">
+                    <tr>
+                        <td>0</td>
+                        <td>
+                            <sapn class="label label-info">答案正确</sapn>
+                        </td>
+                        <td>5</td>
+                        <td>86 ms</td>
+                        <td>15032 KB</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <!-- 学生提交的代码 -->
+                <div class="row">
+                    <div class="col-md-1">
+                        <h4>代码</h4>
+                    </div>
+                    <div class="col-md-11">
+                        <textarea id="code2"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 全局js -->
+<script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
+<script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
+<!-- Peity -->
+<script th:src="@{/hAdmin/js/plugins/peity/jquery.peity.min.js}"></script>
+<!-- CodeMirror -->
+<script th:src="@{/hAdmin/js/plugins/codemirror/codemirror.js}"></script>
+<script th:src="@{/hAdmin/js/plugins/codemirror/mode/javascript/javascript.js}"></script>
+<!-- 自定义js -->
+<script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
+
+<script th:inline="javascript">
+
+    let editor_two;
+    let source;
+
+    /**
+     * 模态框显示时加载代码编辑器
+     */
+    $("#showScore").on('shown.bs.modal', function () {
+        if (editor_two != null) {
+            editor_two.toTextArea();
+        }
+        editor_two = CodeMirror.fromTextArea(document.getElementById("code2"), {
+            lineNumbers: true,
+            matchBrackets: true,
+            styleActiveLine: true,
+        });
+        editor_two.refresh();
+        editor_two.setValue(source);
+    })
+
+    /**
+     * 获取显示的状态
+     */
+    const getStatesClass = function (e) {
+        if (e == "答案正确") {
+            return "label label-info";
+        } else if (e == "格式错误") {
+            return "label label-warning"
+        } else {
+            return "label label-danger";
+        }
+    }
+
+    /**
+     * 显示更详细的运行状态
+     */
+    const showMoreStat = function (index) {
+        let problemStates = [[${problemStates}]][index];
+        console.log(problemStates);
+        source = problemStates.source;
+        // 总状态
+        $("#generalStatus").html("<tr><td>" + problemStates.submitTime.replace("T", " ") + "</td>" +
+            "<td>" + problemStates.totalScore + "</td><td>P-" + problemStates.proNum +
+            "</td><td>" + problemStates.userId + "</td></tr>");
+        // 详细状态
+        let htmlValue = "";
+        let states = problemStates.testPoints;
+        for (let i = 0; i < states.length; i++) {
+            htmlValue += "<tr><td>" + states[i].castId + "</td>";
+            htmlValue += "<td><sapn class='" + getStatesClass(states[i].state) + "'>" + states[i].state + "</sapn></td>";
+            htmlValue += "<td>" + states[i].compiler + "</td>"
+            htmlValue += "<td>" + states[i].score + "</td><td>" + states[i].time + " ms</td><td>" + states[i].memory + " KB</td></tr>";
+        }
+        $("#moreStatus").html(htmlValue);
+        // 加载代码
+        $('#showScore').modal('show');
+    }
+
+</script>
+</body>
+</html>

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.smxy.exam.beans.Admin;
 import com.smxy.exam.beans.ExamCompletionBank;
 import com.smxy.exam.beans.ExamProcedureBank;
-import com.smxy.exam.beans.ResultData;
+import com.smxy.exam.processing.ResultData;
 import com.smxy.exam.service.IExamCompletionBankService;
 import com.smxy.exam.service.IExamProcedureBankService;
 import com.smxy.exam.util.FileUtil;
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 import javax.websocket.server.PathParam;
 import java.io.File;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -40,6 +39,7 @@ import java.util.regex.Matcher;
  * @create 2022-03-29 17:44
  */
 @Controller
+@RequestMapping("/bank")
 public class ProblemBankController {
 
     public static final String TEST_DATA_FILE_PATH = "D:\\OnlineJudge\\exam\\testData";
@@ -69,7 +69,7 @@ public class ProblemBankController {
      * @param contentHtml 题干
      * @param scoreStr    分数
      * @param type        添加题目的类型
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-03-29 17:59
      */
@@ -110,7 +110,7 @@ public class ProblemBankController {
      *
      * @param index 显示的页号
      * @param type  题库类型
-     * @return com.smxy.exam.beans.ResultData<com.smxy.exam.beans.ExamCompletionBank>
+     * @return com.smxy.exam.processing.ResultData<com.smxy.exam.beans.ExamCompletionBank>
      * @author 范颂扬
      * @date 2022-03-31 16:00
      */
@@ -135,7 +135,7 @@ public class ProblemBankController {
      * 根据题号查询题目
      *
      * @param proId 题号
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-05 18:54
      */
@@ -156,7 +156,7 @@ public class ProblemBankController {
     }
 
     /**
-     * 填空题显示数据类
+     * 考题显示数据类
      *
      * @author 范颂扬
      * @create 2022-04-07 15:40
@@ -368,7 +368,7 @@ public class ProblemBankController {
     /**
      * 根据ID修改填空题（题库中修改答案）
      *
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-07 15:52
      */
@@ -386,7 +386,7 @@ public class ProblemBankController {
      * 根据ID删除填空题
      *
      * @param id 题目ID
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-07 17:10
      */
@@ -536,7 +536,7 @@ public class ProblemBankController {
      * 获取题目所有的测试数据
      *
      * @param proId
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-15 9:29
      */
@@ -603,7 +603,7 @@ public class ProblemBankController {
      * @param inputData
      * @param outputData
      * @param score
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-15 10:50
      */
@@ -636,7 +636,7 @@ public class ProblemBankController {
      *
      * @param proId
      * @param testId
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-15 11:52
      */

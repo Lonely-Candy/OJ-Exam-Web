@@ -53,7 +53,7 @@
                                     </small>
                                 </td>
                                 <td class="project-actions">
-                                    <a th:href="@{'/toEditPage/' + ${problem.id}} + '?type=programme'"
+                                    <a th:href="@{'/bank/toEditPage/' + ${problem.id}} + '?type=programme'"
                                        class="btn btn-success btn-sm">
                                         <i class="fa fa-edit"></i> 编辑 </a>
                                     <a th:onclick="'delProblem(' + ${problem.id} + ')'"
@@ -72,7 +72,7 @@
                                     <ul class="pagination justify-content-center">
                                         <li th:class="${problemData.hasPrevious() ? 'page-item' : 'page-item disabled'}">
                                             <a class="page-link"
-                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=programme'}"
+                                               th:href="@{'/bank/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=programme'}"
                                                aria-label="Previous">
                                                 <span aria-hidden="true">&laquo;</span>
                                             </a>
@@ -82,7 +82,7 @@
                                         </li>
                                         <li th:class="${problemData.hasNext() ? 'page-item' : 'page-item disabled'}">
                                             <a class="page-link"
-                                               th:href="@{'/getAllProblem/' + ${problemData.getCurrent() + 1} + '?type=programme'}"
+                                               th:href="@{'/bank/getAllProblem/' + ${problemData.getCurrent() + 1} + '?type=programme'}"
                                                aria-label="Next">
                                                 <span aria-hidden="true">&raquo;</span>
                                             </a>
@@ -138,7 +138,7 @@
      * @param proId 题目ID
      */
     const showProblem = function (proId) {
-        $.get("/getProblem/" + proId + "?type=programme", function (data, status) {
+        $.get("/bank/getProblem/" + proId + "?type=programme", function (data, status) {
             if (status == "success") {
                 if (data.code == 777) {
                     let resultData = data.data;
@@ -164,7 +164,7 @@
             answer += inputTagValue + "#";
         }
         answer += $("#input_answer_" + (blankSum - 1)).find("input").val();
-        $.post("/editProblem/" + proId, {'answer': answer}, function (data, status) {
+        $.post("/bank/editProblem/" + proId, {'answer': answer}, function (data, status) {
             if (status == "success") {
                 if (data.code == 777) {
                     $("#showProblemModal").modal('toggle');
@@ -190,7 +190,7 @@
             closeOnCancel: false
         }, function (isConfirm) {
             if (isConfirm) {
-                $.get("/deleteProblem/" + proId + "?type=programme", function (data, status) {
+                $.get("/bank/deleteProblem/" + proId + "?type=programme", function (data, status) {
                     if (status == "success") {
                         if (data.code == 777) {
                             swal("删除成功！", "您已经永久删除了该题目。", "success", function () {

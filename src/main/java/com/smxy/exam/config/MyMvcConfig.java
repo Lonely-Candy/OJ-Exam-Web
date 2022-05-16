@@ -1,5 +1,6 @@
 package com.smxy.exam.config;
 
+import com.smxy.exam.interceptor.AdminLerInterceptor;
 import com.smxy.exam.interceptor.ExamLerInterceptor;
 import com.smxy.exam.interceptor.LoginLerInterceptor;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,10 @@ public class MyMvcConfig {
                         .excludePathPatterns("/css/**", "/image/**", "/webjars/**");
                 // 学生操作拦截
                 registry.addInterceptor(new ExamLerInterceptor()).addPathPatterns("/student/**");
+                // 管理员操作拦截
+                registry.addInterceptor(new AdminLerInterceptor())
+                        .addPathPatterns("/bank/**").addPathPatterns("/exam/**")
+                        .excludePathPatterns("/exam/examList");
             }
         };
         return webMvcConfigurer;

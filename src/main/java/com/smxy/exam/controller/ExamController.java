@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.smxy.exam.beans.*;
 import com.smxy.exam.config.StarJobInit;
+import com.smxy.exam.processing.ResultData;
 import com.smxy.exam.service.*;
 import com.smxy.exam.util.ResultDataUtil;
 import lombok.Data;
@@ -198,7 +199,7 @@ public class ExamController {
      * 删除考试
      *
      * @param examId
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-21 17:30
      */
@@ -229,7 +230,7 @@ public class ExamController {
      * 手动改变考试状态
      *
      * @param examId
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-21 17:38
      */

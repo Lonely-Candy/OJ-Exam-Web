@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.smxy.exam.beans.*;
+import com.smxy.exam.processing.ProblemStateListData;
+import com.smxy.exam.processing.ResultData;
 import com.smxy.exam.service.*;
 import com.smxy.exam.service.async.ExamAsyncService;
 import com.smxy.exam.util.ResultDataUtil;
@@ -18,10 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -163,6 +162,32 @@ public class StudentExamController {
     }
 
     /**
+     * 根据考试ID和题目ID获取对应的题目显示类
+     *
+     * @param proNum
+     * @param proId
+     * @param examId
+     * @param isShowAnswer
+     * @return com.smxy.exam.controller.ProblemBankController.ProblemShowData
+     * @author 范颂扬
+     * @date 2022-05-16 17:18
+     */
+    private ProblemBankController.ProblemShowData getProgrammeProblemOne(Integer proNum, Integer proId, Integer examId, boolean isShowAnswer) {
+        // 查询考试中的题目数据
+        Wrapper<ExamProcedureProblem> examProcedureQueryWrapper = new QueryWrapper<ExamProcedureProblem>()
+                .eq("exam_id", examId).eq("problem_id", proId);
+        ExamProcedureProblem examProcedureProblem = examProcedureProblemService.getOne(examProcedureQueryWrapper);
+        ExamProcedureBank procedure = examProcedureBankService.getById(proId);
+        // 将题目详细的内容和考试中题目的分数进行组合
+        procedure.setScore(examProcedureProblem.getScore());
+        ProblemBankController.ProblemShowData problemShowData = new ProblemBankController.ProblemShowData(procedure).setProNum(proNum);
+        if (!isShowAnswer) {
+            problemShowData.setAnswer(null).setReplaceContext(null).setReplaceContextShowAnswerNoEdit(null);
+        }
+        return problemShowData;
+    }
+
+    /**
      * 获取填空题对应的题目集
      *
      * @param examId
@@ -204,7 +229,7 @@ public class StudentExamController {
      *
      * @param submitData
      * @param session
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-04-27 14:00
      */
@@ -242,7 +267,7 @@ public class StudentExamController {
      *
      * @param submitData
      * @param session
-     * @return com.smxy.exam.beans.ResultData
+     * @return com.smxy.exam.processing.ResultData
      * @author 范颂扬
      * @date 2022-05-15 22:07
      */
@@ -253,18 +278,45 @@ public class StudentExamController {
         // 获取用户数据
         User userData = (User) session.getAttribute("loginUserData");
         // 获取考试题目
-        List<ProblemBankController.ProblemShowData> programmeProblems = getProgrammeProblemList(submitData.examId, true);
+        ProblemBankController.ProblemShowData programmeProblem = getProgrammeProblemOne(submitData.getProNum()
+                , submitData.getProId(), submitData.examId, true);
         // 编程填题保存提交记录
-        List<ExamProcedureStatus> procedureStatuses = null;
-        if (programmeProblems != null && programmeProblems.size() != 0) {
-            procedureStatuses = saveProcedureSubmitRecord(userData, submitData, programmeProblems);
-            if (procedureStatuses == null) {
-                return ResultDataUtil.error(666, "保存编程填空题失败");
-            }
+        List<ExamProcedureStatus> procedureStatuses = saveProcedureSubmitRecord(userData, submitData, programmeProblem);
+        if (procedureStatuses == null) {
+            return ResultDataUtil.error(666, "保存编程填空题失败");
         }
         // 开启判题线程
-        examAsyncService.executeJudgeAsync(userData, procedureStatuses, null, submitData.examId, null, programmeProblems);
+        List<ProblemBankController.ProblemShowData> programmeProblems = new ArrayList<>();
+        programmeProblems.add(programmeProblem);
+        examAsyncService.executeJudgeAsync(userData, procedureStatuses
+                , null, submitData.examId, null, programmeProblems);
         return ResultDataUtil.success();
+    }
+
+    /**
+     * 获取编程填空题运行数据前往考试状态显示列表
+     *
+     * @param examId
+     * @param model
+     * @param session
+     * @return java.lang.String
+     * @author 范颂扬
+     * @date 2022-04-30 11:52
+     */
+    @GetMapping("/toStateList/{examId}")
+    public String toStateListPage(@PathVariable Integer examId, Model model, HttpSession session) {
+        User loginUserData = (User) session.getAttribute("loginUserData");
+        // 查询考试对应的所有记录
+        Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>()
+                .eq("exam_Id", examId).eq("user_id", loginUserData.getUserid());
+        List<ExamProcedureStatus> examProcedureStatuses = examProcedureStatusService.list(queryWrapper);
+        List<ProblemStateListData> problemStateListDataList = ProblemStateListData.getProblemStateListDataNoGroup(examProcedureStatuses);
+        problemStateListDataList.sort((o1, o2) -> {
+            return o2.getSubmitTime().compareTo(o1.getSubmitTime());
+        });
+        model.addAttribute("examId", examId);
+        model.addAttribute("problemStates", problemStateListDataList);
+        return "exam/student/submitCondition";
     }
 
     /**
@@ -293,9 +345,13 @@ public class StudentExamController {
     @Accessors(chain = true)
     public static class SubmitProgrammeDataPackage {
 
+        private Integer proId;
+
+        private Integer proNum;
+
         private Integer examId;
 
-        private List<String[]> programmeAnswers;
+        private String[] programmeAnswers;
 
     }
 
@@ -316,7 +372,7 @@ public class StudentExamController {
         for (int i = 0; i < completionProblems.size(); i++) {
             ProblemBankController.ProblemShowData completionProblem = completionProblems.get(i);
             // 处理提交的答案
-            String answer = getAnswerBuffer(submitData.getCompletionAnswers(), i);
+            String answer = getAnswerBuffer(submitData.getCompletionAnswers().get(i));
             // 获取提交的源码
             completionStatuses.add(new ExamCompletionStatus().setExamId(submitData.getExamId())
                     .setProblemId(String.valueOf(completionProblem.getId()))
@@ -335,34 +391,30 @@ public class StudentExamController {
      *
      * @param userData
      * @param submitData
-     * @param programmeProblems
+     * @param programmeProblem
      * @return java.util.List<com.smxy.exam.beans.ExamProcedureStatus>
      * @author 范颂扬
      * @date 2022-04-29 20:52
      */
     private List<ExamProcedureStatus> saveProcedureSubmitRecord(User userData, SubmitProgrammeDataPackage submitData
-            , List<ProblemBankController.ProblemShowData> programmeProblems) {
+            , ProblemBankController.ProblemShowData programmeProblem) {
         List<ExamProcedureStatus> procedureStatuses = new ArrayList<>();
-        for (int i = 0; i < programmeProblems.size(); i++) {
-            ProblemBankController.ProblemShowData programmeProblem = programmeProblems.get(i);
-            // 获取学生提交的答案
-            String answer = getAnswerBuffer(submitData.getProgrammeAnswers(), i);
-            // 获取将题目和代码进行整合获取到可运行的代码
-            String source = StringUtil.getRunCodeByHtml(programmeProblem.getContent()
-                    , submitData.getProgrammeAnswers().get(i));
-            // 不同的编译器是单独一条记录
-            String[] compilers = programmeProblem.getCompilers().split("#");
-            // 不同的测试点是单独一条记录
-            String[] scores = programmeProblem.getScore().split("#");
-            for (int j = 0; j < compilers.length; j++) {
-                for (int z = 0; z < scores.length; z++) {
-                    procedureStatuses.add(new ExamProcedureStatus().setProblemNum(i + 1)
-                            .setUserId(userData.getUserid()).setCaseTestDataId(z)
-                            .setExamId(submitData.getExamId()).setSource(source)
-                            .setProblemId(programmeProblem.getId()).setAnswer(answer)
-                            .setCompiler(compilers[j]).setCodeLength(source.length())
-                            .setSubmitTime(LocalDateTime.now()));
-                }
+        String answer = getAnswerBuffer(submitData.getProgrammeAnswers());
+        // 获取将题目和代码进行整合获取到可运行的代码
+        String source = StringUtil.getRunCodeByHtml(programmeProblem.getContent()
+                , submitData.getProgrammeAnswers());
+        // 不同的编译器是单独一条记录
+        String[] compilers = programmeProblem.getCompilers().split("#");
+        // 不同的测试点是单独一条记录
+        String[] scores = programmeProblem.getScore().split("#");
+        for (int j = 0; j < compilers.length; j++) {
+            for (int z = 0; z < scores.length; z++) {
+                procedureStatuses.add(new ExamProcedureStatus().setProblemNum(programmeProblem.getProNum())
+                        .setUserId(userData.getUserid()).setCaseTestDataId(z)
+                        .setExamId(submitData.getExamId()).setSource(source)
+                        .setProblemId(programmeProblem.getId()).setAnswer(answer)
+                        .setCompiler(compilers[j]).setCodeLength(source.length())
+                        .setSubmitTime(LocalDateTime.now()));
             }
         }
         boolean res = examProcedureStatusService.saveBatch(procedureStatuses);
@@ -375,15 +427,12 @@ public class StudentExamController {
     /**
      * 处理学生提交的答案
      *
-     * @param answersList
-     * @param i
+     * @param answers
      * @return java.lang.StringBuffer
      * @author 范颂扬
      * @date 2022-04-29 20:58
      */
-    private String getAnswerBuffer(List<String[]> answersList, int i) {
-        // 获取学生提交的答案
-        String[] answers = answersList.get(i);
+    private String getAnswerBuffer(String[] answers) {
         // 没有提交答案的空设置为空白字符串（防止异常）
         for (int j = 0; j < answers.length; j++) {
             if (answers[j] == null) {
