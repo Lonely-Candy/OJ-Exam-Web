@@ -282,9 +282,9 @@ public class ProblemBankController {
             this.time = examProcedureBank.getTime().toString().replace('T', ' ');
             this.adminid = examProcedureBank.getAdminid();
             this.compilers = examProcedureBank.getCompile();
+            this.blankSum = answer.split("#").length;
             // 计算总分
-            String[] scores = score == null ? new String[answer.split("#").length] : score.split("#");
-            this.blankSum = scores.length;
+            String[] scores = score == null ? new String[this.blankSum] : score.split("#");
             double totalPoints = 0d;
             for (int i = 0; i < scores.length; i++) {
                 totalPoints += Double.parseDouble(scores[i] == null || scores[i].equals("") ? "0" : scores[i]);
@@ -324,9 +324,12 @@ public class ProblemBankController {
             // 关闭格式化
             document.outputSettings().indentAmount(0).prettyPrint(false);
             for (int i = 0; i < index; i++) {
-                answers[i] = answers[i].replaceAll("\"", "&quot;");
+                String strAnswer = "";
+                if (answers.length > i) {
+                    strAnswer = answers[i].replaceAll("\"", "&quot;");
+                }
                 Element element = document.getElementById("input_answer_" + i);
-                String htmlValue = "<span class='textarea' contenteditable=\"false\">" + answers[i] + "</span>";
+                String htmlValue = "<span class='textarea' contenteditable=\"false\">" + strAnswer + "</span>";
                 if (isShowScore) {
                     htmlValue += "<span class=\"input-answer-addon input-group-addon\">" + scores[i] + " 分</span>";
                 }

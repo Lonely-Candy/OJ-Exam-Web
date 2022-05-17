@@ -196,7 +196,7 @@ public class ProblemStateListData {
                         Integer caseTestDataId = status.getCaseTestDataId();
                         Float score = status.getScore();
                         Float oldScore = castIdScoreMap.get(caseTestDataId);
-                        if(oldScore == null || oldScore.compareTo(score)  < 0) {
+                        if (oldScore == null || oldScore.compareTo(score) < 0) {
                             castIdScoreMap.put(caseTestDataId, score);
                         }
                         ProblemStateListData.TestPoint testPoint = problemStateListData.getTestPoint(status);
@@ -215,6 +215,25 @@ public class ProblemStateListData {
             }
         }
         return problemStateListDataList;
+    }
+
+    /**
+     * 该此提交记录中，是否有修改过
+     *
+     * @param statuses
+     * @return boolean
+     * @author 范颂扬
+     * @date 2022-05-17 16:35
+     */
+    public static boolean isChangeScore(List<ExamProcedureStatus> statuses) {
+        for (int i = 0; i < statuses.size(); i++) {
+            ExamProcedureStatus status = statuses.get(i);
+            String isChange = status.getIsChange();
+            if ("1".equals(isChange)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

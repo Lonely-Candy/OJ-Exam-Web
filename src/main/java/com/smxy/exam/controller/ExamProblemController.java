@@ -429,7 +429,7 @@ public class ExamProblemController {
                 ExamProcedureStatus status = studentIdStatusMapValue.get(i);
                 Integer problemId = status.getProblemId();
                 List<ExamProcedureStatus> proIdStatusMapValue = proIdStatusMap.get(problemId);
-                if(proIdStatusMapValue == null) {
+                if (proIdStatusMapValue == null) {
                     proIdStatusMapValue = new ArrayList<>();
                 }
                 proIdStatusMapValue.add(status);
@@ -444,7 +444,7 @@ public class ExamProblemController {
                     ExamProcedureStatus status = statusList.get(i);
                     String submitTime = status.getSubmitTime().toString();
                     List<ExamProcedureStatus> submitTimeStatusListMapValue = submitTimeStatusListMap.get(submitTime);
-                    if(submitTimeStatusListMapValue == null) {
+                    if (submitTimeStatusListMapValue == null) {
                         submitTimeStatusListMapValue = new ArrayList<>();
                     }
                     submitTimeStatusListMapValue.add(status);
@@ -455,14 +455,18 @@ public class ExamProblemController {
                 Float maxScore = Float.MIN_VALUE;
                 for (String submitTime : submitTimeStatusListMap.keySet()) {
                     List<ExamProcedureStatus> statuses = submitTimeStatusListMap.get(submitTime);
+                    boolean isChange = ProblemStateListData.isChangeScore(statuses);
                     Float countScore = 0f;
                     for (int i = 0; i < statuses.size(); i++) {
                         ExamProcedureStatus status = statuses.get(i);
                         countScore += status.getScore();
                     }
-                    if(maxScore.compareTo(countScore) != 1) {
+                    if (isChange || maxScore.compareTo(countScore) != 1) {
                         maxScore = countScore;
                         submitTimeKey = submitTime;
+                        if (isChange) {
+                            break;
+                        }
                     }
                 }
                 List<ExamProcedureStatus> waitSaveStatus = submitTimeStatusListMap.get(submitTimeKey);
@@ -582,12 +586,12 @@ public class ExamProblemController {
             return ResultDataUtil.error(666, "查无对应的题目分数");
         }
         String score = completionProblem.getScore();
-        // 4. 封装学生答案
-        ProblemBankController.ProblemShowData problemStudentAnswer = new ProblemBankController.ProblemShowData(
-                completionBank.setAnswer(source).setScore(score).setId(statusId)).setProNum(problemNum);
-        // 5. 封装正确答案
+        // 4. 封装正确答案(正确答案要先封装，否则会覆盖正确答案)
         ProblemBankController.ProblemShowData problemCorrectAnswer = new ProblemBankController.ProblemShowData(
                 completionBank.setScore(score));
+        // 5. 封装学生答案
+        ProblemBankController.ProblemShowData problemStudentAnswer = new ProblemBankController.ProblemShowData(
+                completionBank.setAnswer(source).setScore(score).setId(statusId)).setProNum(problemNum);
         // 6. 正确答案转换只显示答案
         problemCorrectAnswer.replaceContextOnlyAnswer();
         Map<String, Object> map = new HashMap<>();

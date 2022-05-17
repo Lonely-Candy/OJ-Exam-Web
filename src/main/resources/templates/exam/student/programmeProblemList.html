@@ -214,6 +214,7 @@
         let problems;
         answerName = "pAnswers_" + index;
         problems = programmeProblems;
+        console.log(problems);
         let answerArray = JSON.parse(sessionStorage.getItem(answerName));
         if (answerArray == null) {
             answerArray = new Array(problems[index].blankSum);
@@ -230,10 +231,12 @@
         }
         loadProblemData(0);
         for (let i = 0; i < programmeProblems.length; i++) {
+            let answerArray = getLocalAnswerArray(i);
             // 加载导航样式
-            loadProblemATagStyle(i, getLocalAnswerArray(i));
+            loadProblemATagStyle(i, answerArray);
             // 创建空白答案
-            getLocalAnswerArray(i);
+            let answerName = "pAnswers_" + i;
+            sessionStorage.setItem(answerName, JSON.stringify(answerArray));
         }
     });
 </script>
