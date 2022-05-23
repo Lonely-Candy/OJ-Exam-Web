@@ -10,7 +10,7 @@
         <a th:href="@{${activeUrl == 'completionProblemList' ? '#' : '/student/beginExam/' + examId}}">填空题列表</a>
     </li>
     <li th:class="${activeUrl == 'programmeProblemList' ? 'active' : 'nav-item'}">
-        <a th:href="@{${activeUrl == 'programmeProblemList' ? '#' : '/student/toProgrammeProblemListPage/' + examId}}">编程题列表</a>
+        <a th:href="@{${activeUrl == 'programmeProblemList' ? '#' : '/student/toProgrammeProblemListPage/' + examId}}">编程填空题列表</a>
     </li>
     <li th:class="${activeUrl == 'submitCondition' ? 'active' : 'nav-item'}">
         <a th:href="@{${activeUrl == 'submitCondition' ? '#' : '/student/toStateList/' + examId}}">提交记录</a>

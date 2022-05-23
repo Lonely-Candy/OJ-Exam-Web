@@ -314,20 +314,7 @@ public class ExamProblemController {
         List<ExamProcedureStatus> procedureStatuses = examProcedureStatusService.list(procedureStatusQueryWrapper);
         // 数据处理
         procedureStatuses = implementDataProcessing(procedureStatuses);
-        // 3.1 获取键值对，key:学号 value:总分(编程填空题)
-        Map<String, Float> userIdTotalProcedureMap = new HashMap<>(10);
-        for (ExamProcedureStatus status : procedureStatuses) {
-            String userId = status.getUserId();
-            // 1) 计算总分
-            Float score = userIdTotalProcedureMap.get(userId);
-            if (score == null) {
-                score = status.getScore();
-            } else {
-                score += status.getScore();
-            }
-            userIdTotalProcedureMap.put(userId, score);
-        }
-        // 3.2 获取键值对，key:学号 value:记录(编程填空题)
+        // 3.1 获取键值对，key:学号 value:记录(编程填空题)
         Map<String, List<ExamProcedureStatus>> userIdProcedureStatusMap = new HashMap<>(10);
         for (ExamProcedureStatus status : procedureStatuses) {
             String userId = status.getUserId();
@@ -343,21 +330,18 @@ public class ExamProblemController {
         List<RankingListData> rankingListDataList = new ArrayList<>();
         for (String userId : userIdUserNameMap.keySet()) {
             String userName = userIdUserNameMap.get(userId);
-            // 获取对应的部分分数
-            Float procedureTotalScore = userIdTotalProcedureMap.get(userId);
-            Float completionTotalScore = userIdTotalCompletionMap.get(userId);
-            // 计算总分
-            procedureTotalScore = procedureTotalScore == null ? 0f : procedureTotalScore;
-            completionTotalScore = completionTotalScore == null ? 0f : completionTotalScore;
-            Float totalScore = procedureTotalScore + completionTotalScore;
+            // 获取对应的记录列表
             List<ExamCompletionStatus> completionStatusList = userIdCompletionStatusMap.get(userId);
             List<ExamProcedureStatus> procedureStatusList = userIdProcedureStatusMap.get(userId);
+            // 获取对应的部分分数
+            Float procedureTotalScore = 0f;
+            Float completionTotalScore = userIdTotalCompletionMap.get(userId);
+            // 计算总分
+            completionTotalScore = completionTotalScore == null ? 0f : completionTotalScore;
             // 1) 设置基础字段
             RankingListData rankingListData = new RankingListData()
                     .setUserId(userId).setUserName(userName)
-                    .setTotalScore(StringUtil.getNumberNoInvalidZero(totalScore))
-                    .setCompletionTotalScore(StringUtil.getNumberNoInvalidZero(completionTotalScore))
-                    .setProgrammeTotalScore(StringUtil.getNumberNoInvalidZero(procedureTotalScore));
+                    .setCompletionTotalScore(StringUtil.getNumberNoInvalidZero(completionTotalScore));
             List<CompletionShowData> completionShowDataList = new ArrayList<>();
             if (completionStatusList != null) {
                 for (ExamCompletionStatus examCompletionStatus : completionStatusList) {
@@ -383,7 +367,11 @@ public class ExamProblemController {
                     castIdScoreMap.put(j, scores[j]);
                 }
                 stateListData.setCastIdScoreMap(castIdScoreMap);
+                procedureTotalScore += stateListData.getTotalScoreFloat();
             }
+            Float totalScore = procedureTotalScore + completionTotalScore;
+            rankingListData.setProgrammeTotalScore(StringUtil.getNumberNoInvalidZero(procedureTotalScore))
+                    .setTotalScore(StringUtil.getNumberNoInvalidZero(totalScore));
             // 3) 设置对应的记录
             rankingListDataList.add(rankingListData.setCompletionShowDataList(completionShowDataList)
                     .setProgrammeShowDataList(problemStateListData));
@@ -470,7 +458,9 @@ public class ExamProblemController {
                     }
                 }
                 List<ExamProcedureStatus> waitSaveStatus = submitTimeStatusListMap.get(submitTimeKey);
-                procedureStatusList.addAll(waitSaveStatus);
+                if (waitSaveStatus != null) {
+                    procedureStatusList.addAll(waitSaveStatus);
+                }
             }
         }
         return procedureStatusList;
@@ -613,7 +603,7 @@ public class ExamProblemController {
     @GetMapping("/changeCompletionScore/{id}")
     public ResultData changeStudentCompletionScore(@PathVariable Integer id, @PathParam("score") String score) {
         Wrapper<ExamCompletionStatus> updateWrapper = new UpdateWrapper<ExamCompletionStatus>()
-                .eq("id", id).set("score", score).set("is_change", "1");
+                .eq("id", id).set("score", Float.parseFloat(score)).set("is_change", "1");
         boolean res = examCompletionStatusService.update(updateWrapper);
         if (res) {
             return ResultDataUtil.success();

@@ -245,6 +245,9 @@ public class ProblemStateListData {
      * @date 2022-05-10 17:50
      */
     public static List<ProblemStateListData> getProblemStateListData(List<ExamProcedureStatus> examProcedureStatuses) {
+        if (examProcedureStatuses == null) {
+            return new ArrayList<>();
+        }
         // 封装数据，将题号对应的多组测试数据使用键值对对应起来
         // Map<学号, Map<题目ID, Map<测试数据ID, List<状态>>>>
         // 注意：这里状态使用集合，是因为，可能存在测试数据使用不同的编译器得出的分数，选出来的最高分都是相同的。

@@ -356,7 +356,7 @@
      * 修改填空题分数
      */
     const changeScoreCompletion = function (id, index, listId, username, userId, examId) {
-        let score = $("#student_score").val();
+        let score = $("#student_score_c").val();
         $.get("/exam/changeCompletionScore/" + id + "?score=" + score, function (data, status) {
             if (status == 'success') {
                 if (data.code == 777) {

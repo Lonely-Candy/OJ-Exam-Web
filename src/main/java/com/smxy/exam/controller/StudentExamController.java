@@ -78,7 +78,7 @@ public class StudentExamController {
      */
     @GetMapping("/beginExam/{examId}")
     public String beginExam(@PathVariable("examId") Integer examId, HttpSession session, Model model) {
-        User user = (com.smxy.exam.beans.User) session.getAttribute("loginUserData");
+        User user = (User) session.getAttribute("loginUserData");
         Exam exam = examService.getById(examId);
         if (exam.getFlag() == -1) {
             return "redirect:/exam/examList?message=exam_isNotStarted";
@@ -239,6 +239,13 @@ public class StudentExamController {
     public ResultData submitCompletionProblem(@RequestBody SubmitCompletionDataPackage submitData, HttpSession session) {
         // 获取用户数据
         User userData = (User) session.getAttribute("loginUserData");
+        Exam exam = examService.getById(submitData.examId);
+        if (exam.getFlag() == -1) {
+            return ResultDataUtil.error(222, "考试未开始！");
+        }
+        if (exam.getFlag() == 0) {
+            return ResultDataUtil.error(222, "考试结束！");
+        }
         // 获取考试题目
         List<ProblemBankController.ProblemShowData> completionProblems = getCompletionProblemList(submitData.examId, true);
         List<ExamCompletionStatus> completionStatuses = null;
@@ -277,6 +284,13 @@ public class StudentExamController {
     public ResultData submitProgrammeProblem(@RequestBody SubmitProgrammeDataPackage submitData, HttpSession session) {
         // 获取用户数据
         User userData = (User) session.getAttribute("loginUserData");
+        Exam exam = examService.getById(submitData.examId);
+        if (exam.getFlag() == -1) {
+            return ResultDataUtil.error(222, "考试未开始！");
+        }
+        if (exam.getFlag() == 0) {
+            return ResultDataUtil.error(222, "考试结束！");
+        }
         // 获取考试题目
         ProblemBankController.ProblemShowData programmeProblem = getProgrammeProblemOne(submitData.getProNum()
                 , submitData.getProId(), submitData.examId, true);

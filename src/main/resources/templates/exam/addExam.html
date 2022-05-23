@@ -55,7 +55,7 @@
 <script th:src="@{/js/zh-cn.js}"></script>
 <script th:src="@{/js/daterangepicker.min.js}"></script>
 <script>
-    var getTimeDifference = function (startDate, endDate) {
+    const getTimeDifference = function (startDate, endDate) {
         // 计算出时间差的毫秒数
         var date3 = endDate.getTime() - startDate.getTime()
         // 计算出相差天数
@@ -70,6 +70,7 @@
         var res = days * 24 * 60 + hours * 60 + minutes
         return res
     }
+
     $(function () {
         // 日期选择器显示
         $('input[name="datetimes"]').daterangepicker({
@@ -85,6 +86,10 @@
                 , new Date(end.format('YYYY-MM-DD HH:mm:ss')));
             $('#exampleInputLength').val(res)
         });
+    });
+
+    $(document).ready(function () {
+        $('#exampleInputLength').val(1439);
     });
 </script>
 </body>

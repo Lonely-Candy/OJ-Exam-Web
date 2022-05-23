@@ -64,7 +64,7 @@ public class StarJobInit {
                     examService.updateById(exam.setFlag(1));
                     LOGGER.info("Exam ID: " + exam.getId() + " Status updated to start");
                 }
-                if (flag != 0 && nowTime.compareTo(endTime) < 0) {
+                if (flag == 1) {
                     examMap.put(exam.getId(), exam);
                 }
             }

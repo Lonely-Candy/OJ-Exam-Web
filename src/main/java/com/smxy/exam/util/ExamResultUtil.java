@@ -1,8 +1,5 @@
 package com.smxy.exam.util;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-
 /**
  * @author 范颂扬
  * @create 2022-04-28 22:25
@@ -21,6 +18,8 @@ public class ExamResultUtil {
         switch (result) {
             case 0:
                 return totalScore;
+            case 1:
+                return String.valueOf(Integer.parseInt(totalScore) - 2);
             case 2:
             case 3:
             case 4:

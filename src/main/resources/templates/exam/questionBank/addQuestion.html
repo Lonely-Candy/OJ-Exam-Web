@@ -317,7 +317,8 @@
         uElements = $(editor_content).find('u');
         let score_html = "";
         for (let i = 0; i < uElements.length; i++) {
-            let value = $(uElements[i]).text().replaceAll("\"", "&quot;");
+            let value = $(uElements[i]).text().replaceAll("\"", "&quot;").replaceAll(" ", "&nbsp;");
+            console.log(i, value);
             score_html += '<div class="col-sm-4"><div class="panel panel-primary">';
             score_html += '<div class="panel-heading">填空 ' + (i + 1) + '</div>';
             score_html += '<div class="panel-body"><div class="col-md-8">' +
@@ -421,6 +422,7 @@
             compiles += $(compile[compile.length - 1]).children("input").val();
         }
         answers += $(uElements[uElements.length - 1]).text();
+        console.log(answers);
         if (type == "completion") {
             scores += $('#score_' + (uElements.length)).val();
         }

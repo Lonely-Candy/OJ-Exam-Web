@@ -201,7 +201,7 @@
         let answerArray = getLocalAnswerArray(index);
         let idSuffix = $(e).parents("span")[0].id.split("_")[2];
         let answerName = "pAnswers_" + index;
-        answerArray[parseInt(idSuffix)] = $(e).html();
+        answerArray[parseInt(idSuffix)] = $(e).text();
         loadProblemATagStyle(index, answerArray);
         sessionStorage.setItem(answerName, JSON.stringify(answerArray));
     }
@@ -214,7 +214,6 @@
         let problems;
         answerName = "pAnswers_" + index;
         problems = programmeProblems;
-        console.log(problems);
         let answerArray = JSON.parse(sessionStorage.getItem(answerName));
         if (answerArray == null) {
             answerArray = new Array(problems[index].blankSum);
