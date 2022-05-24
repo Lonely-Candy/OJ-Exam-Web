@@ -201,7 +201,11 @@
         let answerArray = getLocalAnswerArray(index);
         let idSuffix = $(e).parents("span")[0].id.split("_")[2];
         let answerName = "pAnswers_" + index;
-        answerArray[parseInt(idSuffix)] = $(e).text();
+        let htmlValue = $(e).html().replaceAll(/<br(\/{0,1})>/gi, '\n');
+        htmlValue = htmlValue.replace(/<\/?.+?\/?>/g, '');
+        console.log(htmlValue);
+        $(e).text(htmlValue);
+        answerArray[parseInt(idSuffix)] = htmlValue;
         loadProblemATagStyle(index, answerArray);
         sessionStorage.setItem(answerName, JSON.stringify(answerArray));
     }
