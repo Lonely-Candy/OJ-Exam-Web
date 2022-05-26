@@ -160,3 +160,8 @@ label {
 .is_change {
     color: red;
 }
+
+.i-checks {
+    padding-left: 0;
+    padding-right: 0;
+}

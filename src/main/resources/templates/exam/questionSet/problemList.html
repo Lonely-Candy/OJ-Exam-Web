@@ -29,6 +29,19 @@
             <div style="margin-top: 20px">
                 <div class="container">
                     <div class="row">
+                        <!-- 注意事项 -->
+                        <div class="col">
+                            <div class="ibox">
+                                <div class="ibox-content ">
+                                    <h1 class="m-b-xxs">注意事项</h1>
+                                    <h3 class="m-b-xxs">1. 编程填空题和编程题没有添加测试数据，是无法成功添加到考试中的。</h3>
+                                    <h3 class="m-b-xxs">2. 考试中的每道题的分数是可单独设置的，不同的考试添加同一道题目，题目分数可设置不同。</h3>
+                                    <h3 class="m-b-xxs">3. 编程填空题和编程题的编译器是可单独设置的，不同的考试添加同一道题目，题目的编译器可设置不同。</h3>
+                                    <h3 class="m-b-xxs">4.
+                                        2,3点中的需要设置不同的分数和编译器，需要进入对应的考试中，点击题目列表中批量修改分数和批量修改编译器按钮，进行修改。</h3>
+                                </div>
+                            </div>
+                        </div>
                         <!-- 功能按钮 -->
                         <div class="col">
                             <button onclick="showAddExamProblemModel()" class="btn btn-info btn-sm"
@@ -38,6 +51,10 @@
                             <button onclick="showAlterProblemScoreModel()" class="btn btn-warning btn-sm"
                                     type="button">
                                 <i class="fa fa-wrench"></i> 批量修改分数
+                            </button>
+                            <button onclick="showAlterProblemCompileModel()" class="btn btn-success btn-sm"
+                                    type="button">
+                                <i class="fa fa-asterisk"></i> 批量修改编译器
                             </button>
                         </div>
                         <!-- 具体内容 -->
@@ -321,6 +338,81 @@
         </div>
     </div>
 </div>
+<!-- 批量修改分数模态框 -->
+<div class="modal fade" id="alterProblemCompileModel"
+     data-backdrop="static" data-keyboard="false"
+     tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">批量修改题目分数</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- 模态框-导航栏 -->
+                <ul class="nav nav-tabs">
+                    <li class="active">
+                        <a data-toggle="tab" href="#complies-1"><i class="fa fa-briefcase"></i>编程填空题</a>
+                    </li>
+                </ul>
+                <div style="margin-top: 5px" class="tab-content">
+                    <!-- 编程填空题列表 -->
+                    <div id="complies-1" class="active tab-pane">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>标号</th>
+                                <th>标题</th>
+                                <th>编译器</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="problem, problemStat:${programmeProblemScores}">
+                                <td>P-[[${problemStat.count}]]</td>
+                                <td>[[${problem.title}]]</td>
+                                <td th:id="'p-compiles-' + ${problem.id}">
+                                    <div class="container-fluid">
+                                        <div class="row">
+                                            <label class="col-md-4 i-checks">
+                                                <input th:checked="${problem.isExistCompile('C')}" type="checkbox"
+                                                       value="C"> C</label>
+                                            <label class="col-md-4 i-checks">
+                                                <input th:checked="${problem.isExistCompile('C++')}" type="checkbox"
+                                                       value="C++"> C++</label>
+                                            <label class="col-md-4 i-checks">
+                                                <input th:checked="${problem.isExistCompile('DEV_C')}" type="checkbox"
+                                                       value="DEV_C"> DEV_C</label>
+                                        </div>
+                                        <div style="margin-top: 5px" class="row">
+                                            <label class="col-md-4 i-checks">
+                                                <input th:checked="${problem.isExistCompile('DEV_C++')}" type="checkbox"
+                                                       value="DEV_C++"> DEV_C++</label>
+                                            <label class="col-md-4 i-checks">
+                                                <input th:checked="${problem.isExistCompile('Pascal')}" type="checkbox"
+                                                       value="Pascal"> Pascal</label>
+                                            <label class="col-md-4 i-checks">
+                                                <input th:checked="${problem.isExistCompile('Java')}" type="checkbox"
+                                                       value="Java"> Java</label>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" onclick="saveCompiles()" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
@@ -333,16 +425,17 @@
 <script type="text/javascript" th:src="@{/webjars/wangeditor/4.7.5/dist/wangEditor.min.js}"></script>
 <!-- highlight -->
 <script type="text/javascript" th:src="@{/highlight/highlight.min.js}"></script>
-<script>
+<!-- iCheck -->
+<script th:src="@{/hAdmin/js/plugins/iCheck/icheck.min.js}"></script>
+<script th:inline="javascript">
+    // 旧分数
+    let oldScore;
+
     $(function () {
         $('.full-height-scroll').slimScroll({
             height: '100%'
         });
     });
-</script>
-<script th:inline="javascript">
-    // 旧分数
-    let oldScore;
 
     /**
      * 处理题目显示内容
@@ -455,6 +548,13 @@
                 }
             }
         });
+    }
+
+    /**
+     * 显示修改题目编译器模态框
+     */
+    const showAlterProblemCompileModel = function () {
+        $("#alterProblemCompileModel").modal('show');
     }
 
     /**
@@ -591,6 +691,48 @@
     };
 
     /**
+     * 保存编译器表格
+     */
+    const saveCompiles = function () {
+        let pProblem = [[${programmeProblems}]];
+        let newProgrammeProblem = new Array();
+        for (let i = 0; i < pProblem.length; i++) {
+            let id = pProblem[i].id;
+            let className = "#" + "p-compiles-" + id;
+            let compile = $(className).find('.icheckbox_square-green.checked');
+            let compiles = "";
+            for (let i = 0; i < compile.length - 1; i++) {
+                compiles += $(compile[i]).children("input").val() + "#";
+            }
+            compiles += $(compile[compile.length - 1]).children("input").val();
+            pProblem[i].compile = compiles;
+            newProgrammeProblem.push(pProblem[i]);
+        }
+        $.ajax({
+            type: 'post',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            url: "/exam/editProblemCompiles/" + [[${examId}]],
+            success: function (data, status) {
+                if (status) {
+                    if (data.code == 777) {
+                        swal({title: "修改成功", type: "success"}, function () {
+                            history.go(0);
+                        })
+                    } else {
+                        swal("修改失败", data.message, 'warning');
+                    }
+                } else {
+                    swal("服务器异常", "请联系管理员", "error");
+                }
+            },
+            data: JSON.stringify(newProgrammeProblem)
+        });
+    }
+
+    /**
      * 删除题目
      * @param proId 题目ID
      */
@@ -626,6 +768,13 @@
                 }
             });
     }
+
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+    });
 </script>
 </body>
 </html>

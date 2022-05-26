@@ -19,8 +19,11 @@ public enum ProgrammeResultEnum {
     RuntimeError("运行错误", 5),
     OutputLimitExceed("输出超限", 6),
     CompileError("编译错误", 7),
+    // 多个结果显示
+    MoreWrong("多种错误", 8),
+    PartiallyCorrect("部分正确", 9),
     SystemError("系统错误", 98),
-    NoResult("无运行结果", -1);
+    NoResult("等待判题", -1);
 
     private String name;
 

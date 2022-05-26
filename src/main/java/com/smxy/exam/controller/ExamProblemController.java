@@ -118,17 +118,19 @@ public class ExamProblemController {
             // 查询对应的题目信息
             List<ExamProcedureBank> procedureBanks = examProcedureBankService.listByIds(Arrays.asList(programmes));
             // List 转 Map
-            Map<Integer, String> procedureIdBothScoreMap = procedureBanks.stream()
+            Map<Integer, ExamProcedureBank> procedureIdBothProblemMap = procedureBanks.stream()
                     .collect(HashMap::new
-                            , (map, examProcedureBank) -> map.put(examProcedureBank.getId(), examProcedureBank.getScore())
+                            , (map, examProcedureBank) -> map.put(examProcedureBank.getId(), examProcedureBank)
                             , HashMap::putAll);
             // 封装数据
             Collection<ExamProcedureProblem> procedureProblems = new ArrayList<>();
             for (int i = 0; i < programmes.length; i++) {
+                ExamProcedureBank examProcedureBank = procedureIdBothProblemMap.get(programmes[i]);
                 ExamProcedureProblem procedureProblem = new ExamProcedureProblem().setProblemId(programmes[i])
                         .setProblemNum(++procedureCount).setExamId(examId)
                         .setSubmitSum(0).setAcceptedNum(0)
-                        .setScore(procedureIdBothScoreMap.get(programmes[i]));
+                        .setScore(examProcedureBank.getScore())
+                        .setCompiles(examProcedureBank.getCompile());
                 procedureProblems.add(procedureProblem);
             }
             // 批量添加
@@ -179,17 +181,21 @@ public class ExamProblemController {
     public String toProblemListPage(@PathVariable Integer examId, Model model) {
         // 查询考试题目
         Wrapper<ExamProcedureProblem> procedureQueryWrapper = new QueryWrapper<ExamProcedureProblem>()
-                .eq("exam_id", examId).select("problem_id", "score");
+                .eq("exam_id", examId).select("problem_id", "score", "compiles");
         Wrapper<ExamCompletionProblem> completionQueryWrapper = new QueryWrapper<ExamCompletionProblem>()
                 .eq("exam_id", examId).select("problem_id", "score");
         List<ExamProcedureProblem> procedureProblem = examProcedureProblemService.list(procedureQueryWrapper);
         List<ExamCompletionProblem> completionProblem = examCompletionProblemService.list(completionQueryWrapper);
+        // 封装，使用题目ID作为索引
+        Map<Integer, ExamProcedureProblem> proIdProcedureProblemsMap = procedureProblem.stream().collect(HashMap::new
+                , (map, examProcedureProblem) -> map.put(examProcedureProblem.getProblemId(), examProcedureProblem)
+                , HashMap::putAll);
+        Map<Integer, ExamCompletionProblem> proIdCompletionProblemsMap = completionProblem.stream().collect(HashMap::new
+                , (map, examCompletionProblem) -> map.put(examCompletionProblem.getProblemId(), examCompletionProblem)
+                , HashMap::putAll);
         // 抽离题目ID
-        List<Integer> procedureProblemIds = procedureProblem.stream().map(ExamProcedureProblem::getProblemId).collect(Collectors.toList());
-        List<Integer> completionProblemIds = completionProblem.stream().map(ExamCompletionProblem::getProblemId).collect(Collectors.toList());
-        // 抽离题目ID和分数，键值对
-        Map<Integer, String> procedureProblemIdMapScore = procedureProblem.stream().collect(Collectors.toMap(ExamProcedureProblem::getProblemId, ExamProcedureProblem::getScore));
-        Map<Integer, String> completionProblemIdMapScore = completionProblem.stream().collect(Collectors.toMap(ExamCompletionProblem::getProblemId, ExamCompletionProblem::getScore));
+        List<Integer> procedureProblemIds = proIdProcedureProblemsMap.keySet().stream().collect(Collectors.toList());
+        List<Integer> completionProblemIds = proIdCompletionProblemsMap.keySet().stream().collect(Collectors.toList());
         // 查询详细的题目信息
         List<ExamProcedureBank> procedureProblemDataList = procedureProblemIds == null || procedureProblemIds.size() == 0 ?
                 new ArrayList<>() : examProcedureBankService.listByIds(procedureProblemIds);
@@ -202,8 +208,8 @@ public class ExamProblemController {
         List<ProblemScoreListData> programmeProblemScores = new ArrayList<>();
         for (int i = 0; i < procedureProblemDataList.size(); i++) {
             ExamProcedureBank examProcedureBank = procedureProblemDataList.get(i);
-            ProblemListData problemListData = new ProblemListData(examProcedureBank
-                    , procedureProblemIdMapScore.get(examProcedureBank.getId()));
+            ExamProcedureProblem problem = proIdProcedureProblemsMap.get(examProcedureBank.getId());
+            ProblemListData problemListData = new ProblemListData(examProcedureBank, problem.getScore(), problem.getCompiles());
             programmeProblems.add(problemListData);
             for (int j = 0; j < problemListData.scores.length; j++) {
                 programmeProblemScores.add(new ProblemScoreListData((j + 1), problemListData));
@@ -211,8 +217,8 @@ public class ExamProblemController {
         }
         for (int i = 0; i < completionProblemBankDataList.size(); i++) {
             ExamCompletionBank examCompletionBank = completionProblemBankDataList.get(i);
-            ProblemListData problemListData = new ProblemListData(examCompletionBank, completionProblemIdMapScore
-                    .get(examCompletionBank.getId()));
+            ExamCompletionProblem problem = proIdCompletionProblemsMap.get(examCompletionBank.getId());
+            ProblemListData problemListData = new ProblemListData(examCompletionBank, problem.getScore());
             completionProblems.add(problemListData);
             for (int j = 0; j < problemListData.scores.length; j++) {
                 completionProblemScores.add(new ProblemScoreListData((j + 1), problemListData));
@@ -513,6 +519,32 @@ public class ExamProblemController {
     }
 
     /**
+     * 修改题目可用编译器
+     *
+     * @param problemArray
+     * @param examId
+     * @return com.smxy.exam.processing.ResultData
+     * @author 范颂扬
+     * @date 2022-05-26 20:04
+     */
+    @ResponseBody
+    @Transactional(rollbackFor = {Exception.class})
+    @PostMapping("/editProblemCompiles/{examId}")
+    public ResultData editProblemCompiles(@RequestBody ProblemListData[] problemArray
+            , @PathVariable("examId") Integer examId) {
+        for (int i = 0; i < problemArray.length; i++) {
+            Wrapper<ExamProcedureProblem> updateWrapper = new UpdateWrapper<ExamProcedureProblem>()
+                    .eq("exam_id", examId).eq("problem_id", problemArray[i].id)
+                    .set("compiles", problemArray[i].compile);
+            boolean res = examProcedureProblemService.update(updateWrapper);
+            if (!res) {
+                return ResultDataUtil.error(666, "更新失败");
+            }
+        }
+        return ResultDataUtil.success();
+    }
+
+    /**
      * 从考试中删除题目
      *
      * @param proId
@@ -735,10 +767,10 @@ public class ExamProblemController {
             super();
         }
 
-        public ProblemListData(ExamProcedureBank examProcedureBank, String score) {
+        public ProblemListData(ExamProcedureBank examProcedureBank, String score, String compile) {
             this.time = examProcedureBank.getTime();
             this.adminid = examProcedureBank.getAdminid();
-            this.compile = examProcedureBank.getCompile();
+            this.compile = compile;
             this.score = score;
             this.answer = examProcedureBank.getAnswer();
             this.code = examProcedureBank.getCode();
@@ -814,6 +846,11 @@ public class ExamProblemController {
         private String totalPoints;
 
         /**
+         * 可用编译器
+         */
+        private String compiles;
+
+        /**
          * 空数
          */
         private Integer blankSum;
@@ -824,6 +861,7 @@ public class ExamProblemController {
             this.totalPoints = problemListData.getTotalPoints();
             this.score = problemListData.getScore().split("#")[blankId - 1];
             this.title = problemListData.getTitle();
+            this.compiles = problemListData.getCompile();
             this.id = problemListData.getId();
         }
 
@@ -832,6 +870,7 @@ public class ExamProblemController {
             this.title = examProcedureBank.getTitle();
             this.id = examProcedureBank.getId();
             this.score = examProcedureBank.getScore().split("#")[blankId - 1];
+            this.compiles = examProcedureBank.getCompile();
             this.calculateScore(examProcedureBank.getScore());
         }
 
@@ -859,6 +898,24 @@ public class ExamProblemController {
             }
             this.totalPoints = new BigDecimal(String.valueOf(totalPoints))
                     .stripTrailingZeros().toPlainString();
+        }
+
+        /**
+         * 判断是否包含该编译器
+         *
+         * @param compile
+         * @return boolean
+         * @author 范颂扬
+         * @date 2022-05-25 16:56
+         */
+        public boolean isExistCompile(String compile) {
+            String[] compiles = this.compiles.split("#");
+            for (int i = 0; i < compiles.length; i++) {
+                if (compiles[i].equals(compile)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

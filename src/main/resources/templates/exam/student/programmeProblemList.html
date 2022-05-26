@@ -34,11 +34,15 @@
                                 <ul class="tag-list" style="padding: 0">
                                     <li th:each="problem, problemStat:${programmeProblems}">
                                         <a th:id="'p_' + ${problemStat.count - 1}"
-                                           th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ', \'programme\')'">
+                                           th:onclick="'loadProblemData(' + ${problemStat.count - 1} + ')'">
                                             [[${problemStat.count}]]
                                         </a>
                                     </li>
                                 </ul>
+                                <div class="clearfix"></div>
+                                <div class="hr-line-dashed"></div>
+                                <h3>编译器</h3>
+                                <select id="select_compiles" class="form-control" name=""></select>
                                 <div class="clearfix"></div>
                                 <div class="hr-line-dashed"></div>
                                 <button onclick="submitExam()" class="btn btn-info btn-block" type="button">提交</button>
@@ -136,11 +140,25 @@
         let proAuthor = "#problem_author";
         let proContent = "#problem_content";
         let proTotalPoints = "#problem_totalPoints";
+        let proCompiles = "#select_compiles";
         let problemData = programmeProblems;
         if (problemData == null || problemData.length == 0) {
             return;
         }
-        // 设置显示内容
+        // 设置编译器显示内容
+        let htmlValue = "";
+        // 获取上次提交的编译器
+        let compile = sessionStorage.getItem("p-" + index);
+        if (compile != null && compile != '') {
+            htmlValue += "<option>" + compile + "</option>"
+        }
+        let compiles = problemData[index].compilers.split("#");
+        for (let i = 0; i < compiles.length; i++) {
+            if (compiles[i] != compile) {
+                htmlValue += "<option>" + compiles[i] + "</option>"
+            }
+        }
+        $(proCompiles).html(htmlValue);
         $(proId).attr('value', problemData[index].id);
         $(proNum).text("P-" + (index + 1));
         $(proAuthor).text("出题人: " + problemData[index].adminid);
@@ -162,11 +180,14 @@
     const submitExam = function () {
         let index = $("#problem_num").html().split("-")[1];
         let proId = $("#pro_id").attr('value');
+        let compile = $("#select_compiles").val();
         // 获取所有的答案
         let answer = getLocalAnswerArray(index - 1);
-        console.log(answer);
+        // 保存当前选择的编译器
+        sessionStorage.setItem("p-" + (index - 1), compile);
         // 封装表单数据
         let submitData = {
+            "compile": compile,
             "proId": proId,
             "proNum": index,
             "examId": [[${examId}]],

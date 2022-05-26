@@ -63,5 +63,10 @@ public class ExamProcedureProblem implements Serializable {
      */
     private String score;
 
+    /**
+     * 可用编译器,使用#隔开
+     */
+    private String compiles;
+
 
 }

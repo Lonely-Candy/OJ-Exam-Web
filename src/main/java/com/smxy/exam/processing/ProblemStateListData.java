@@ -25,6 +25,11 @@ public class ProblemStateListData {
     private Integer examId;
 
     /**
+     * 运行结果
+     */
+    private String state;
+
+    /**
      * 题目ID
      */
     private Integer proId;
@@ -53,6 +58,11 @@ public class ProblemStateListData {
      * 用户 ID
      */
     private String userId;
+
+    /**
+     * 编译器
+     */
+    private String compiler;
 
     /**
      * 源码
@@ -118,6 +128,7 @@ public class ProblemStateListData {
         this.userId = procedureStatus.getUserId();
         this.totalScoreFloat = 0f;
         this.testPoints = new ArrayList<>();
+        this.compiler = procedureStatus.getCompiler();
         this.source = procedureStatus.getSource();
     }
 
@@ -127,6 +138,55 @@ public class ProblemStateListData {
 
     public void addTotalScore(Float totalScoreFloat) {
         this.totalScoreFloat += totalScoreFloat;
+    }
+
+    /**
+     * 根据所有的测试点判断当前题目的状态
+     *
+     * @param
+     * @return void
+     * @author 范颂扬
+     * @date 2022-05-26 21:32
+     */
+    public void setStateByTestPoints() {
+        if (testPoints == null || testPoints.size() == 0) {
+            return;
+        }
+        if (testPoints.size() == 1) {
+            this.state = testPoints.get(0).getState();
+            return;
+        }
+        // 统计结果数
+        Map<String, Integer> map = new HashMap<>(10);
+        for (int i = 0; i < testPoints.size(); i++) {
+            TestPoint testPoint = testPoints.get(i);
+            Integer count = map.get(testPoint.state);
+            if (count == null) {
+                count = 0;
+            }
+            map.put(testPoint.state, count++);
+        }
+        // 获取当前结果
+        Set<String> resultSet = map.keySet();
+        // 只有一个结果
+        if (resultSet.size() == 1) {
+            this.state = resultSet.iterator().next();
+            return;
+        }
+        // 出现系统错误
+        if (resultSet.contains(ProgrammeResultEnum.SystemError.getName())) {
+            this.state = ProgrammeResultEnum.SystemError.getName();
+        }
+        // 正在判题
+        if (resultSet.contains(ProgrammeResultEnum.NoResult.getName())) {
+            this.state = ProgrammeResultEnum.NoResult.getName();
+        }
+        // 部分正确
+        if (resultSet.contains(ProgrammeResultEnum.Accepted.getName())) {
+            this.state = ProgrammeResultEnum.Accepted.getName();
+        } else {
+            this.state = ProgrammeResultEnum.MoreWrong.getName();
+        }
     }
 
     /**
@@ -209,6 +269,8 @@ public class ProblemStateListData {
                     }
                     Float totalScoreFloat = problemStateListData.getTotalScoreFloat();
                     problemStateListData.setTotalScore(StringUtil.getNumberNoInvalidZero(totalScoreFloat));
+                    // 设置总状态
+                    problemStateListData.setStateByTestPoints();
                     problemStateListDataList.add(problemStateListData);
                 }
 

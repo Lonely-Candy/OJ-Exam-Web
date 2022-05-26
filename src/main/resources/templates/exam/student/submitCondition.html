@@ -10,25 +10,31 @@
     <link th:href="@{/hAdmin/css/animate.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/plugins/codemirror/codemirror.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/plugins/codemirror/ambiance.css}" rel="stylesheet">
+    <link th:href="@{/hAdmin/css/plugins/toastr/toastr.min.css}" rel="stylesheet">
     <link th:href="@{/hAdmin/css/style.css?v=4.1.0}" rel="stylesheet">
     <link th:href="@{/css/mycss.css}" rel="stylesheet">
 </head>
 <body>
-
-<body>
 <div class="container">
     <div class="row">
-    <!-- 详细内容展示 -->
+        <!-- 详细内容展示 -->
         <main style="margin-top: 10px" role="main" class="col align-self-center">
             <!-- 引入考试相关导航 -->
             <div th:replace="~{navigation/studentExamNav :: studentExamNav('submitCondition', ${examId})}"></div>
+            <div style="margin-top: 20px">
+                <button onclick="refresh()" class="btn btn-primary" type="button">
+                    <i class="fa fa-refresh"></i> 刷新记录
+                </button>
+            </div>
             <!-- 学生提交 -->
             <div style="margin-top: 20px">
                 <table class="table">
                     <thead>
                     <tr>
                         <th scope="col">提交时间</th>
-                        <th scope="col">分数</th>
+                        <th scope="col">结果</th>
+                        <th scope="col">编译器</th>
+                        <th scope="col">总分数</th>
                         <th scope="col">题目</th>
                         <th scope="col">用户</th>
                     </tr>
@@ -36,6 +42,14 @@
                     <tbody>
                     <tr th:each="problem, problemStat:${problemStates}">
                         <th scope="row">[[${problem.submitTime.toString().replace('T', ' ')}]]</th>
+                        <td>
+                            <span th:class="${problem.state == '答案正确' ? 'label label-info'
+                                : (problem.state == '格式错误' || problem.state == '等待判题'
+                                ? 'label label-warning' : 'label label-danger')}">
+                                [[${problem.state}]]
+                            </span>
+                        </td>
+                        <td>[[${problem.compiler}]]</td>
                         <td>
                             <a th:onclick="'showMoreStat('+ ${problemStat.index} +')'" type="button">
                                 [[${problem.totalScore}]]
@@ -67,7 +81,9 @@
                     <thead>
                     <tr>
                         <th>提交时间</th>
-                        <th>分数</th>
+                        <th>结果</th>
+                        <th>编译器</th>
+                        <th>总分数</th>
                         <th>题目</th>
                         <th>用户</th>
                     </tr>
@@ -123,6 +139,8 @@
 <!-- CodeMirror -->
 <script th:src="@{/hAdmin/js/plugins/codemirror/codemirror.js}"></script>
 <script th:src="@{/hAdmin/js/plugins/codemirror/mode/javascript/javascript.js}"></script>
+<!-- Toastr script -->
+<script th:src="@{/hAdmin/js/plugins/toastr/toastr.min.js}"></script>
 <!-- 自定义js -->
 <script th:src="@{/hAdmin/js/content.js?v=1.0.0}"></script>
 
@@ -153,7 +171,7 @@
     const getStatesClass = function (e) {
         if (e == "答案正确") {
             return "label label-info";
-        } else if (e == "格式错误") {
+        } else if (e == "格式错误" || e == "等待判题") {
             return "label label-warning"
         } else {
             return "label label-danger";
@@ -185,6 +203,12 @@
         $('#showScore').modal('show');
     }
 
+    /**
+     * 刷新页面
+     */
+    const refresh = function () {
+        window.history.go(0);
+    }
 </script>
 </body>
 </html>

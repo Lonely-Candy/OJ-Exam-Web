@@ -145,13 +145,17 @@ public class StudentExamController {
             procedures = examProcedureBankService.listByIds(procedureProblemIds);
         }
         // 将考试中的题目ID和分数封装成 Map
-        Map<Integer, String> procedureIdAndScoreMap = examProcedureProblemList.stream()
-                .collect(Collectors.toMap(ExamProcedureProblem::getProblemId, ExamProcedureProblem::getScore));
+        Map<Integer, ExamProcedureProblem> proIdProblemMap = examProcedureProblemList.stream()
+                .collect(HashMap::new
+                        , (map, examProcedureProblem) -> map.put(examProcedureProblem.getProblemId(), examProcedureProblem)
+                        , HashMap::putAll);
         List<ProblemBankController.ProblemShowData> procedureProblemShowDataList = new ArrayList<>();
-        // 将题目详细的内容和考试中题目的分数进行组合
+        // 将题目详细的内容和考试中题目的分数和编译器进行组合
         for (int i = 0; i < procedures.size(); i++) {
             ExamProcedureBank procedure = procedures.get(i);
-            procedure.setScore(procedureIdAndScoreMap.get(procedure.getId()));
+            ExamProcedureProblem procedureProblem = proIdProblemMap.get(procedure.getId());
+            // 设置考试中单独设置的题目分数和编译器
+            procedure.setScore(procedureProblem.getScore()).setCompile(procedureProblem.getCompiles());
             ProblemBankController.ProblemShowData problemShowData = new ProblemBankController.ProblemShowData(procedure);
             if (!isShowAnswer) {
                 problemShowData.setAnswer(null).setReplaceContext(null).setReplaceContextShowAnswerNoEdit(null);
@@ -365,6 +369,8 @@ public class StudentExamController {
 
         private Integer examId;
 
+        private String compile;
+
         private String[] programmeAnswers;
 
     }
@@ -415,21 +421,18 @@ public class StudentExamController {
         List<ExamProcedureStatus> procedureStatuses = new ArrayList<>();
         String answer = getAnswerBuffer(submitData.getProgrammeAnswers());
         // 获取将题目和代码进行整合获取到可运行的代码
-        String source = StringUtil.getRunCodeByHtml(programmeProblem.getContent()
-                , submitData.getProgrammeAnswers());
-        // 不同的编译器是单独一条记录
-        String[] compilers = programmeProblem.getCompilers().split("#");
+        String source = StringUtil.getRunCodeByHtml(programmeProblem.getContent(), submitData.getProgrammeAnswers());
+        // 获取编译器
+        String compile = submitData.compile;
         // 不同的测试点是单独一条记录
         String[] scores = programmeProblem.getScore().split("#");
-        for (int j = 0; j < compilers.length; j++) {
-            for (int z = 0; z < scores.length; z++) {
-                procedureStatuses.add(new ExamProcedureStatus().setProblemNum(programmeProblem.getProNum())
-                        .setUserId(userData.getUserid()).setCaseTestDataId(z)
-                        .setExamId(submitData.getExamId()).setSource(source)
-                        .setProblemId(programmeProblem.getId()).setAnswer(answer)
-                        .setCompiler(compilers[j]).setCodeLength(source.length())
-                        .setSubmitTime(LocalDateTime.now()));
-            }
+        for (int z = 0; z < scores.length; z++) {
+            procedureStatuses.add(new ExamProcedureStatus().setProblemNum(programmeProblem.getProNum())
+                    .setUserId(userData.getUserid()).setCaseTestDataId(z)
+                    .setExamId(submitData.getExamId()).setSource(source)
+                    .setProblemId(programmeProblem.getId()).setAnswer(answer)
+                    .setCompiler(compile).setCodeLength(source.length())
+                    .setSubmitTime(LocalDateTime.now()));
         }
         boolean res = examProcedureStatusService.saveBatch(procedureStatuses);
         if (res) {

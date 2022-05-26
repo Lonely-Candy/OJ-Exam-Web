@@ -278,14 +278,6 @@
 <script type="text/javascript" th:src="@{/highlight/highlight.min.js}"></script>
 <!-- iCheck -->
 <script th:src="@{/hAdmin/js/plugins/iCheck/icheck.min.js}"></script>
-<script>
-    $(document).ready(function () {
-        $('.i-checks').iCheck({
-            checkboxClass: 'icheckbox_square-green',
-            radioClass: 'iradio_square-green',
-        });
-    });
-</script>
 <script th:inline="javascript">
     // 填空题文本编辑器
     let editor_completion;
@@ -658,6 +650,11 @@
                 })
             }
         }
+        // 多选框初始化
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
     });
 </script>
 </body>
