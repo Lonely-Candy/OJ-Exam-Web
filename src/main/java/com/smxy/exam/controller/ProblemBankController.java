@@ -2,10 +2,12 @@ package com.smxy.exam.controller;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.smxy.exam.beans.Admin;
 import com.smxy.exam.beans.ExamCompletionBank;
 import com.smxy.exam.beans.ExamProcedureBank;
+import com.smxy.exam.myenum.ProblemTypeEnum;
 import com.smxy.exam.processing.ResultData;
 import com.smxy.exam.service.IExamCompletionBankService;
 import com.smxy.exam.service.IExamProcedureBankService;
@@ -118,13 +120,16 @@ public class ProblemBankController {
     public String getAllProblem(@PathVariable("index") Integer index, @PathParam("type") String type, Model model) {
         Page page = null;
         String toPagePath = null;
-        if ("completion".equals(type)) {
+        OrderItem orderItem = new OrderItem();
+        orderItem.setAsc(false);
+        orderItem.setColumn("time");
+        if (ProblemTypeEnum.Completion.getName().equals(type)) {
             toPagePath = "exam/questionBank/completionBank";
-            page = new Page<ExamCompletionBank>(index, 10);
+            page = new Page<ExamCompletionBank>(index, 10).addOrder(orderItem);
             examCompletionBankService.page(page);
-        } else if ("programme".equals(type)) {
+        } else if (ProblemTypeEnum.Programme.getName().equals(type)) {
             toPagePath = "exam/questionBank/programmeBank";
-            page = new Page<ExamProcedureBank>(index, 10);
+            page = new Page<ExamProcedureBank>(index, 10).addOrder(orderItem);
             examProcedureBankService.page(page);
         }
         model.addAttribute("problemData", page);
@@ -408,23 +413,36 @@ public class ProblemBankController {
     }
 
     /**
-     * 模糊查询填空题题目
+     * 模糊查询题目
      *
      * @param keyword 关键字
+     * @param type 类型
      * @param model
      * @return java.lang.String
      * @author 范颂扬
      * @date 2022-04-07 19:59
      */
-    @PostMapping("/findCompletion")
-    public String findCompletionByKeyword(@RequestParam String keyword, Model model) {
-        long count = examCompletionBankService.count();
-        Page<ExamCompletionBank> page = new Page<ExamCompletionBank>(1, count);
-        Wrapper<ExamCompletionBank> querywrapper = new QueryWrapper<ExamCompletionBank>()
-                .like("title", keyword).or()
-                .like("content", keyword).or()
-                .like("adminid", keyword);
-        examCompletionBankService.page(page, querywrapper);
+    @PostMapping("/findProblem")
+    public String findCompletionByKeyword(@RequestParam String keyword, @RequestParam String type, Model model) {
+        Page page = null;
+        long count;
+        if (ProblemTypeEnum.Completion.getName().equals(type)) {
+            count = examCompletionBankService.count();
+            page = new Page<ExamCompletionBank>(1, count);
+            Wrapper<ExamCompletionBank> queryWrapper = new QueryWrapper<ExamCompletionBank>()
+                    .like("title", keyword).or()
+                    .like("content", keyword).or()
+                    .like("adminid", keyword).orderByDesc("time");
+            examCompletionBankService.page(page, queryWrapper);
+        } else if(ProblemTypeEnum.Programme.getName().equals(type)) {
+            count = examProcedureBankService.count();
+            page = new Page<ExamProcedureBank>(1, count);
+            Wrapper<ExamProcedureBank> queryWrapper = new QueryWrapper<ExamProcedureBank>()
+                    .like("title", keyword).or()
+                    .like("content", keyword).or()
+                    .like("adminid", keyword).orderByDesc("time");
+            examProcedureBankService.page(page, queryWrapper);
+        }
         model.addAttribute("problemData", page);
         model.addAttribute("keyword", keyword);
         return "exam/questionBank/completionBank";

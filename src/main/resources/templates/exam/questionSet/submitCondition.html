@@ -21,13 +21,20 @@
         <main style="margin-top: 10px" role="main" class="col align-self-center">
             <!-- 引入考试相关导航 -->
             <div th:replace="~{navigation/examNav :: examNav('submitCondition', ${examId})}"></div>
+            <div style="margin-top: 20px">
+                <button onclick="refresh()" class="btn btn-primary" type="button">
+                    <i class="fa fa-refresh"></i> 刷新记录
+                </button>
+            </div>
             <!-- 学生提交 -->
             <div style="margin-top: 20px">
                 <table class="table">
                     <thead>
                     <tr>
                         <th scope="col">提交时间</th>
-                        <th scope="col">分数</th>
+                        <th scope="col">结果</th>
+                        <th scope="col">编译器</th>
+                        <th scope="col">总分数</th>
                         <th scope="col">题目</th>
                         <th scope="col">用户</th>
                     </tr>
@@ -35,6 +42,14 @@
                     <tbody>
                     <tr th:each="problem, problemStat:${problemStates}">
                         <th scope="row">[[${problem.submitTime.toString().replace('T', ' ')}]]</th>
+                        <td>
+                            <span th:class="${problem.state == '答案正确' ? 'label label-info'
+                                : (problem.state == '格式错误' || problem.state == '等待判题'
+                                ? 'label label-warning' : 'label label-danger')}">
+                                [[${problem.state}]]
+                            </span>
+                        </td>
+                        <td>[[${problem.compiler}]]</td>
                         <td>
                             <a th:onclick="'showMoreStat('+ ${problemStat.index} +')'" type="button">
                                 [[${problem.totalScore}]]
@@ -46,73 +61,91 @@
                     </tbody>
                 </table>
             </div>
+            <nav aria-label="...">
+                <ul class="pager">
+                    <li th:class="${page.hasPrevious() ? '' : 'disabled'}">
+                        <a th:href="@{${page.hasPrevious() ? '/exam/toStateList/' + examId + '/' + (page.getCurrent() - 1) : '#'}}">
+                            <span aria-hidden="true">&larr;</span> 上一页</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">[[${page.getCurrent()}]]</a>
+                    </li>
+                    <li th:class="${page.hasNext() ? '' : 'disabled'}">
+                        <a th:href="@{${page.hasNext() ? '/exam/toStateList/' + examId + '/' + (page.getCurrent() + 1) : '#'}}">下一页
+                            <span aria-hidden="true">&rarr;</span></a>
+                    </li>
+                </ul>
+            </nav>
         </main>
-        <!-- 详细分数模态框 -->
-        <div class="modal inmodal fade" id="showScore" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
-                                class="sr-only">Close</span></button>
-                        <h4 class="modal-title">提交结果</h4>
+    </div>
+</div>
+
+<!-- 详细分数模态框 -->
+<div class="modal inmodal fade" id="showScore" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span
+                        class="sr-only">Close</span></button>
+                <h4 class="modal-title">提交结果</h4>
+            </div>
+            <div class="modal-body">
+                <!-- 总状态 -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>提交时间</th>
+                        <th>结果</th>
+                        <th>编译器</th>
+                        <th>总分数</th>
+                        <th>题目</th>
+                        <th>用户</th>
+                    </tr>
+                    </thead>
+                    <tbody id="generalStatus"></tbody>
+                </table>
+                <hr>
+                <!-- 详细状态 -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>测试点</th>
+                        <th>结果</th>
+                        <th>编译器</th>
+                        <th>分数</th>
+                        <th>耗时</th>
+                        <th>内存</th>
+                    </tr>
+                    </thead>
+                    <tbody id="moreStatus">
+                    <tr>
+                        <td>0</td>
+                        <td>
+                            <sapn class="label label-info">答案正确</sapn>
+                        </td>
+                        <td>5</td>
+                        <td>86 ms</td>
+                        <td>15032 KB</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <!-- 学生提交的代码 -->
+                <div class="row">
+                    <div class="col-md-1">
+                        <h4>代码</h4>
                     </div>
-                    <div class="modal-body">
-                        <!-- 总状态 -->
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>提交时间</th>
-                                <th>分数</th>
-                                <th>题目</th>
-                                <th>用户</th>
-                            </tr>
-                            </thead>
-                            <tbody id="generalStatus"></tbody>
-                        </table>
-                        <hr>
-                        <!-- 详细状态 -->
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>测试点</th>
-                                <th>结果</th>
-                                <th>编译器</th>
-                                <th>分数</th>
-                                <th>耗时</th>
-                                <th>内存</th>
-                            </tr>
-                            </thead>
-                            <tbody id="moreStatus">
-                            <tr>
-                                <td>0</td>
-                                <td>
-                                    <sapn class="label label-info">答案正确</sapn>
-                                </td>
-                                <td>5</td>
-                                <td>86 ms</td>
-                                <td>15032 KB</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                        <!-- 学生提交的代码 -->
-                        <div class="row">
-                            <div class="col-md-1">
-                                <h4>代码</h4>
-                            </div>
-                            <div class="col-md-11">
-                                <textarea id="code2"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
+                    <div class="col-md-11">
+                        <textarea id="code2"></textarea>
                     </div>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
 </div>
-
 <!-- 全局js -->
 <script th:src="@{/hAdmin/js/jquery.min.js?v=2.1.4}"></script>
 <script th:src="@{/hAdmin/js/bootstrap.min.js?v=3.3.6}"></script>
@@ -172,15 +205,22 @@
         // 详细状态
         let htmlValue = "";
         let states = problemStates.testPoints;
-        for (let i = 0; i<states.length; i++) {
+        for (let i = 0; i < states.length; i++) {
             htmlValue += "<tr><td>" + states[i].castId + "</td>";
             htmlValue += "<td><sapn class='" + getStatesClass(states[i].state) + "'>" + states[i].state + "</sapn></td>";
-            htmlValue += "<td>"+ states[i].compiler +"</td>"
+            htmlValue += "<td>" + states[i].compiler + "</td>"
             htmlValue += "<td>" + states[i].score + "</td><td>" + states[i].time + " ms</td><td>" + states[i].memory + " KB</td></tr>";
         }
         $("#moreStatus").html(htmlValue);
         // 加载代码
         $('#showScore').modal('show');
+    }
+
+    /**
+     * 刷新页面
+     */
+    const refresh = function () {
+        window.history.go(0);
     }
 
 </script>

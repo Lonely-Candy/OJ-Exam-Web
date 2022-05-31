@@ -2,6 +2,8 @@ package com.smxy.exam.controller;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.smxy.exam.beans.*;
 import com.smxy.exam.config.StarJobInit;
 import com.smxy.exam.processing.ResultData;
@@ -118,16 +120,22 @@ public class ExamController {
      * @author 范颂扬
      * @date 2022-02-23 19:15
      */
-    @GetMapping("/examList")
-    public String getExamList(Model model) {
-        List<Exam> examList = examService.list();
+    @GetMapping("/examList/{index}")
+    public String getExamList(@PathVariable("index") Integer index, Model model) {
+        OrderItem orderItem = new OrderItem();
+        orderItem.setColumn("begin_time");
+        orderItem.setAsc(false);
+        Page<Exam> page = new Page<Exam>(index, 4).addOrder(orderItem);
+        Page<Exam> examPageList = examService.page(page);
+        List<Exam> examList = examPageList.getRecords();
         // 转换封装类
         List<ProcessExamBean> exams = new ArrayList<>();
         for (Exam exam : examList) {
             ProcessExamBean examBean = new ProcessExamBean(exam);
             exams.add(examBean);
         }
-        model.addAttribute("exams", exams == null ? new ArrayList<>() : exams);
+        model.addAttribute("page", page);
+        model.addAttribute("exams", exams);
         return "exam/examList";
     }
 
@@ -239,6 +247,26 @@ public class ExamController {
         // 关闭考试
         examService.updateById(new Exam().setId(examId).setFlag(0));
         return "redirect:/exam/examList";
+    }
+
+    @PostMapping("/findExam")
+    public String findExam(@RequestParam("keyword") String keyword, Model model) {
+        long count = examService.count();
+        Page page = new Page<Exam>(1, count);
+        Wrapper<Exam> queryWrapper = new QueryWrapper<Exam>()
+                .like("title", keyword).orderByDesc("begin_time");
+        examService.page(page, queryWrapper);
+        List<Exam> examList = page.getRecords();
+        // 转换封装类
+        List<ProcessExamBean> exams = new ArrayList<>();
+        for (Exam exam : examList) {
+            ProcessExamBean examBean = new ProcessExamBean(exam);
+            exams.add(examBean);
+        }
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("page", page);
+        model.addAttribute("exams", exams);
+        return "exam/examList";
     }
 
 }

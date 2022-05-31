@@ -72,7 +72,7 @@
                                     <ul class="pagination justify-content-center">
                                         <li th:class="${problemData.hasPrevious() ? 'page-item' : 'page-item disabled'}">
                                             <a class="page-link" th:disabled="${!problemData.hasPrevious()}"
-                                               th:href="@{'/bank/getAllProblem/' + ${problemData.getCurrent() - 1} + '?type=completion'}"
+                                               th:href="@{${problemData.hasPrevious() ? '/bank/getAllProblem/' + (problemData.getCurrent() - 1) + '?type=completion' : '#'}}"
                                                aria-label="Previous">
                                                 <span aria-hidden="true">&laquo;</span>
                                             </a>
@@ -81,8 +81,8 @@
                                             <a class="page-link" href="#">[[${problemData.getCurrent()}]]</a>
                                         </li>
                                         <li th:class="${problemData.hasNext() ? 'page-item' : 'page-item disabled'}">
-                                            <a class="page-link"
-                                               th:href="@{'/bank/getAllProblem/' + ${problemData.getCurrent() + 1} + '?type=completion'}"
+                                            <a class="page-link" th:disabled="${!problemData.hasNext()}"
+                                               th:href="@{${problemData.hasNext() ? '/bank/getAllProblem/' + (problemData.getCurrent() + 1) + '?type=completion' : '#'}}"
                                                aria-label="Next">
                                                 <span aria-hidden="true">&raquo;</span>
                                             </a>
@@ -101,7 +101,7 @@
 <!-- 显示题目模态框 -->
 <div th:if="${#session.getAttribute('isAdmin')}" class="modal inmodal" id="showProblemModal" tabindex="-1"
      role="dialog" aria-hidden="true">
-    <div class="modal-dialog ">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content animated fadeIn">
             <div class="modal-header">
                 <input type="hidden" id="pro_id">
@@ -215,17 +215,21 @@
         let keyword = $("#keyword_input").val();
         // 创建表单
         let htmlFormElement = document.createElement("form");
-        htmlFormElement.action = "/findCompletion";
+        htmlFormElement.action = "/bank/findProblem";
         htmlFormElement.method = "post";
         // 不显示表单
         htmlFormElement.style.display = "none";
         // 返回当前页面中，若如需打开新窗口，form 的 target 属性要设置为'_blank'
         htmlFormElement.target = "_self";
         // 添加参数
-        let opt = document.createElement("input");
-        opt.name = "keyword";
-        opt.value = keyword;
-        htmlFormElement.appendChild(opt);
+        let optKeyword = document.createElement("input");
+        let optType = document.createElement("input");
+        optKeyword.name = "keyword";
+        optKeyword.value = keyword;
+        optType.name = "type";
+        optType.value = "completion";
+        htmlFormElement.appendChild(optKeyword);
+        htmlFormElement.appendChild(optType);
         $(document.body).append(htmlFormElement);
         // 提交表单
         htmlFormElement.submit();
@@ -247,7 +251,6 @@
      */
     $("#keyword_input").on('input', function (e) {
         let content = $("#keyword_input").val();
-        console.log(content);
         if (content == "" || content == null) {
             queryProblem();
         }

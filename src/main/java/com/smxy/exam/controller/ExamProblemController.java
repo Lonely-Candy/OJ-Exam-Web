@@ -241,16 +241,17 @@ public class ExamProblemController {
      * @author 范颂扬
      * @date 2022-04-30 11:52
      */
-    @GetMapping("/toStateList/{examId}")
-    public String toStateListPage(@PathVariable Integer examId, Model model) {
+    @GetMapping("/toStateList/{examId}/{index}")
+    public String toStateListPage(@PathVariable Integer examId, @PathVariable Integer index, Model model) {
         // 查询考试对应的所有记录
-        Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>().eq("exam_Id", examId);
-        List<ExamProcedureStatus> examProcedureStatuses = examProcedureStatusService.list(queryWrapper);
+        Page page = new Page(index, 18);
+        Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>()
+                .eq("exam_Id", examId).orderByDesc("submit_time");
+        examProcedureStatusService.page(page, queryWrapper);
+        List<ExamProcedureStatus> examProcedureStatuses = page.getRecords();
         List<ProblemStateListData> problemStateListDataList = ProblemStateListData.getProblemStateListDataNoGroup(examProcedureStatuses);
-        problemStateListDataList.sort((o1, o2) -> {
-            return o2.getSubmitTime().compareTo(o1.getSubmitTime());
-        });
         model.addAttribute("examId", examId);
+        model.addAttribute("page", page);
         model.addAttribute("problemStates", problemStateListDataList);
         return "exam/questionSet/submitCondition";
     }

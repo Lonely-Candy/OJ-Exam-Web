@@ -21,26 +21,29 @@
             <!-- 搜索框 -->
             <div class="form-inline row justify-content-md-center text-center">
                 <div class="form-group mx-sm-3 mb-2">
-                    <input type="text" class="form-control" id="inputPassword2" placeholder="输入考试标题">
+                    <input th:value="${keyword}" type="text" class="form-control" id="keyword_input" placeholder="输入考试标题">
                 </div>
-                <button type="submit" class="btn btn-primary mb-2">搜索</button>
+                <button onclick="queryExam()" type="submit" class="btn btn-primary mb-2">搜索</button>
             </div>
             <!-- 分页 -->
-            <div class="form-inline row justify-content-md-center text-center">
+            <div style="margin-top: 20px" class="form-inline row justify-content-md-center text-center">
                 <div class="form-group mx-sm-3 mb-2">
                     <!-- 分页条 -->
+                    <span>当前一共有 [[${page.getPages()}]] 页，共 [[${page.getTotal()}]] 个考试</span>
                     <nav aria-label="Page navigation example">
                         <ul class="pagination justify-content-center">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" aria-label="Previous">
+                            <li th:class="${page.hasPrevious() ? 'page-item' : 'page-item disabled'}">
+                                <a class="page-link" th:disabled="${!page.hasPrevious()}"
+                                   th:href="@{${page.hasPrevious() ? '/exam/examList/' + (page.getCurrent() - 1) : '#'} }"
+                                   aria-label="Previous">
                                     <span aria-hidden="true">&laquo;</span>
                                 </a>
                             </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#" aria-label="Next">
+                            <li class="page-item active"><a class="page-link" href="#">[[${page.getCurrent()}]]</a></li>
+                            <li th:class="${page.hasNext() ? 'page-item' : 'page-item disabled'}">
+                                <a class="page-link" th:disabled="${!page.hasNext()}"
+                                   th:href="@{${page.hasNext() ? '/exam/examList/' + (page.getCurrent() + 1) : '#'}}"
+                                   aria-label="Next">
                                     <span aria-hidden="true">&raquo;</span>
                                 </a>
                             </li>
@@ -159,6 +162,47 @@
                 }
             });
     }
+
+    const queryExam = function () {
+        let keyword = $("#keyword_input").val();
+        // 创建表单
+        let htmlFormElement = document.createElement("form");
+        htmlFormElement.action = "/exam/findExam";
+        htmlFormElement.method = "post";
+        // 不显示表单
+        htmlFormElement.style.display = "none";
+        // 返回当前页面中，若如需打开新窗口，form 的 target 属性要设置为'_blank'
+        htmlFormElement.target = "_self";
+        // 添加参数
+        let opt = document.createElement("input");
+        opt.name = "keyword";
+        opt.value = keyword;
+        htmlFormElement.appendChild(opt);
+        $(document.body).append(htmlFormElement);
+        // 提交表单
+        htmlFormElement.submit();
+    }
+
+    /**
+     * input回车监听
+     * @param e
+     */
+    $('#keyword_input').bind('keydown', function (event) {
+        // 回车事件
+        if (event.keyCode == 13) {
+            queryExam();
+        }
+    })
+
+    /**
+     * input监听输入
+     */
+    $("#keyword_input").on('input', function (e) {
+        let content = $("#keyword_input").val();
+        if (content == "" || content == null) {
+            queryExam();
+        }
+    });
 
     $(document).ready(function () {
         let message = [[${param?.message}]];

@@ -10,7 +10,7 @@
         <a th:href="@{${activeUrl == 'problemlist' ? '#' : '/exam/toProblemList/' + examId}}">题目列表</a>
     </li>
     <li th:class="${activeUrl == 'submitCondition' ? 'active' : 'nav-item'}">
-        <a th:href="@{${activeUrl == 'submitCondition' ? '#' : '/exam/toStateList/' + examId}}">提交情况</a>
+        <a th:href="@{${activeUrl == 'submitCondition' ? '#' : '/exam/toStateList/' + examId + '/1'}}">提交情况</a>
     </li>
     <li th:class="${activeUrl == 'studentlist' ? 'active' : 'nav-item'}">
         <a th:href="@{${activeUrl == 'studentlist' ? '#' : '/exam/toStudentList/' + examId}}">考生列表</a>
