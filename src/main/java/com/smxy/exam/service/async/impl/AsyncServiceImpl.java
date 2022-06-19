@@ -49,9 +49,11 @@ public class AsyncServiceImpl implements AsyncService {
                     LocalDateTime endTime = exam.getEndTime();
                     Integer flag = exam.getFlag();
                     if (nowTime.compareTo(beginTime) > 0 && nowTime.compareTo(endTime) < 0 && flag == -1) {
+                        // 考试开始
                         examService.updateById(exam.setFlag(1));
                         LOGGER.info("Exam ID: " + exam.getId() + " Status updated to start");
                     } else if (nowTime.compareTo(endTime) > 0 && flag == 1) {
+                        // 考试结束
                         examService.updateById(exam.setFlag(0));
                         LOGGER.info("Exam ID: " + exam.getId() + " Status updated to Closed");
                         StarJobInit.examMap.remove(id);

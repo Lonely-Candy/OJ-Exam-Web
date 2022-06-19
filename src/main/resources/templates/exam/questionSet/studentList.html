@@ -24,21 +24,18 @@
                 <form style="margin-top: 10px" role="form" class="form-inline">
                     <div class="form-group mx-sm-3">
                         <label class="sr-only">班级</label>
-                        <select class="form-control" name="">
-                            <option></option>
-                            <option>18物联网工程1班</option>
-                            <option>18物联网工程2班</option>
-                            <option>18通信工程1班</option>
-                            <option>18通信工程2班</option>
+                        <select id="className_select" class="form-control class_name_select">
+                            <option>[[${selectClassName}]]</option>
+                            <option th:each="className:${classNames}">[[${className}]]</option>
                         </select>
                     </div>
                     <div class="form-group mx-sm-3">
                         <label class="sr-only">模糊搜索</label>
-                        <input type="text" name="" class="form-control" placeholder="请输入学生学号或姓名">
+                        <input id="keyword_input" th:value="${keyword}" type="text" class="form-control"
+                               placeholder="请输入学生学号或姓名">
                     </div>
                     <div class="form-group mx-sm-3">
-                        <button class="btn btn-primary" type="submit">搜索</button>
-                        <button class="btn btn-danger mx-sm-2" type="submit">清空</button>
+                        <button onclick="queryRecord()" class="btn btn-primary" type="button">搜索</button>
                     </div>
                 </form>
             </div>
@@ -48,6 +45,7 @@
                     <thead>
                     <tr>
                         <th scope="col">考生姓名</th>
+                        <th scope="col">班级</th>
                         <th scope="col">进入考试时间</th>
                         <th scope="col">填空题提交时间</th>
                     </tr>
@@ -55,6 +53,7 @@
                     <tbody>
                     <tr th:each="record:${examRecords}">
                         <td>[[${record.userId}]] [[${record.userName}]]</td>
+                        <td>[[${record.className}]]</td>
                         <td>[[${#dates.listFormat(record.beginTime, 'yyyy-MM-dd HH:mm:ss')}]]</td>
                         <td>[[${#dates.listFormat(record.submitTime, 'yyyy-MM-dd HH:mm:ss')}]]</td>
                     </tr>
@@ -68,5 +67,44 @@
 <script th:src="@{/webjars/jquery/3.5.1/jquery.slim.min.js}"></script>
 <script th:src="@{/webjars/popper.js/1.16.0/umd/popper.min.js}"></script>
 <script th:src="@{/webjars/bootstrap/4.6.1/js/bootstrap.min.js}"></script>
+<script th:inline="javascript">
+    /**
+     * 查询题目
+     */
+    const queryRecord = function () {
+        let keyword = $("#keyword_input").val();
+        let selected = $("#className_select").children('option:selected').val();
+        let pathName = window.location.pathname;
+        if (keyword != null && keyword != "" && selected != null && selected != "") {
+            window.location.href = pathName + "?selectClassName=" + selected + "&keyword=" + keyword;
+        } else if (selected != null && selected != "") {
+            window.location.href = pathName + "?selectClassName=" + selected;
+        } else if (keyword != null && keyword != "") {
+            window.location.href = pathName + "?keyword=" + keyword;
+        } else {
+            window.location.href = pathName;
+        }
+    };
+
+    /**
+     * input回车监听
+     * @param e
+     */
+    $('#keyword_input').bind('keydown', function (event) {
+        // 回车事件
+        if (event.keyCode == 13) {
+            queryRecord();
+        }
+    })
+
+    /**
+     * 页面初始化
+     */
+    $(document).ready(function () {
+        $("#className_select").change(function () {
+            queryRecord()
+        });
+    })
+</script>
 </body>
 </html>

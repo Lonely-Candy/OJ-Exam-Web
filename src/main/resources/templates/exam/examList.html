@@ -21,7 +21,8 @@
             <!-- 搜索框 -->
             <div class="form-inline row justify-content-md-center text-center">
                 <div class="form-group mx-sm-3 mb-2">
-                    <input th:value="${keyword}" type="text" class="form-control" id="keyword_input" placeholder="输入考试标题">
+                    <input th:value="${keyword}" type="text" class="form-control" id="keyword_input"
+                           placeholder="输入考试标题">
                 </div>
                 <button onclick="queryExam()" type="submit" class="btn btn-primary mb-2">搜索</button>
             </div>
@@ -90,7 +91,7 @@
                                             <dd th:if="${!#session.getAttribute('isAdmin')}">
                                                 <a th:disabled="${exam.flag != 1}"
                                                    type="button" class="btn btn-success"
-                                                   th:href="@{'/student/beginExam/' + ${exam.id}}">
+                                                   th:href="@{${exam.flag != 1 ? '#' : '/student/beginExam/' + exam.id}}">
                                                     <em class="glyphicon glyphicon-align-left"></em> 开始考试
                                                 </a>
                                             </dd>

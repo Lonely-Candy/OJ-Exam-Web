@@ -266,10 +266,31 @@ public class ExamProblemController {
      * @date 2022-05-01 19:38
      */
     @GetMapping("/toStudentList/{examId}")
-    public String toStudentListPage(@PathVariable Integer examId, Model model) {
-        Wrapper<ExamRecord> queryWrapper = new QueryWrapper<ExamRecord>().eq("exam_id", examId);
-        List<ExamRecord> examRecords = examRecordService.list(queryWrapper);
+    public String toStudentListPage(@PathVariable Integer examId, Model model
+            , @PathParam("selectClassName") String selectClassName
+            , @PathParam("keyword") String keyword) {
+        QueryWrapper<ExamRecord> recordQueryWrapper = new QueryWrapper<ExamRecord>().eq("exam_id", examId);
+        if (selectClassName != null && !selectClassName.equals("")) {
+            recordQueryWrapper.eq("class_name", selectClassName);
+        }
+        if (keyword != null && !keyword.equals("")) {
+            recordQueryWrapper.like("user_id", keyword).or().like("user_name", keyword);
+        }
+        List<ExamRecord> examRecords = examRecordService.list(recordQueryWrapper);
+        Wrapper<ExamRecord> queryWrapper = new QueryWrapper<ExamRecord>().select("class_name").groupBy("class_name");
+        List<String> classNameList = examRecordService.listObjs(queryWrapper, a -> {
+            return a.toString();
+        });
+        if (selectClassName != null && !selectClassName.equals("")) {
+            model.addAttribute("selectClassName", selectClassName);
+            classNameList.remove(selectClassName);
+            classNameList.add("");
+        }
+        if (keyword != null && !keyword.equals("")) {
+            model.addAttribute("keyword", keyword);
+        }
         model.addAttribute("examId", examId);
+        model.addAttribute("classNames", classNameList);
         model.addAttribute("examRecords", examRecords);
         return "exam/questionSet/studentList";
     }
@@ -284,12 +305,26 @@ public class ExamProblemController {
      * @date 2022-05-01 20:17
      */
     @GetMapping("/toRanking/{examId}")
-    public String toRankingPage(@PathVariable Integer examId, Model model) {
+    public String toRankingPage(@PathVariable Integer examId, Model model
+            , @PathParam("selectClassName") String selectClassName
+            , @PathParam("keyword") String keyword) {
         // 1. 获取本场考试记录
-        Wrapper<ExamRecord> recordQueryWrapper = new QueryWrapper<ExamRecord>().eq("exam_id", examId);
+        QueryWrapper<ExamRecord> recordQueryWrapper = new QueryWrapper<ExamRecord>().eq("exam_id", examId);
+        if (selectClassName != null && !selectClassName.equals("")) {
+            recordQueryWrapper.eq("class_name", selectClassName);
+        }
+        if (keyword != null && !keyword.equals("")) {
+            recordQueryWrapper.like("user_id", keyword).or().like("user_name", keyword);
+        }
         List<ExamRecord> examRecords = examRecordService.list(recordQueryWrapper);
-        // 1.1 获取键值对，key:学号 value:姓名
-        Map<String, String> userIdUserNameMap = examRecords.stream().collect(Collectors.toMap(ExamRecord::getUserId, ExamRecord::getUserName));
+        // 1.1 获取键值对，key:学号 value:考试记录
+        Map<String, ExamRecord> userIdRecordMap = examRecords.stream()
+                .collect(HashMap::new, (map, examRecord) -> map.put(examRecord.getUserId(), examRecord), HashMap::putAll);
+        // 1.2 获取集合，所有班级
+        Wrapper<ExamRecord> queryWrapper = new QueryWrapper<ExamRecord>().select("class_name").groupBy("class_name");
+        List<String> classNameList = examRecordService.listObjs(queryWrapper, a -> {
+            return a.toString();
+        });
         // 2. 获取本场考试的所有提交记录(填空题)
         Wrapper<ExamCompletionStatus> completionStatusQueryWrapper = new QueryWrapper<ExamCompletionStatus>().eq("exam_id", examId);
         List<ExamCompletionStatus> completionStatuses = examCompletionStatusService.list(completionStatusQueryWrapper);
@@ -335,8 +370,10 @@ public class ExamProblemController {
         }
         // 4. 整合所有的数据
         List<RankingListData> rankingListDataList = new ArrayList<>();
-        for (String userId : userIdUserNameMap.keySet()) {
-            String userName = userIdUserNameMap.get(userId);
+        for (String userId : userIdRecordMap.keySet()) {
+            ExamRecord examRecord = userIdRecordMap.get(userId);
+            String userName = examRecord.getUserName();
+            String className = examRecord.getClassName();
             // 获取对应的记录列表
             List<ExamCompletionStatus> completionStatusList = userIdCompletionStatusMap.get(userId);
             List<ExamProcedureStatus> procedureStatusList = userIdProcedureStatusMap.get(userId);
@@ -347,7 +384,7 @@ public class ExamProblemController {
             completionTotalScore = completionTotalScore == null ? 0f : completionTotalScore;
             // 1) 设置基础字段
             RankingListData rankingListData = new RankingListData()
-                    .setUserId(userId).setUserName(userName)
+                    .setUserId(userId).setUserName(userName).setClassName(className)
                     .setCompletionTotalScore(StringUtil.getNumberNoInvalidZero(completionTotalScore));
             List<CompletionShowData> completionShowDataList = new ArrayList<>();
             if (completionStatusList != null) {
@@ -385,6 +422,15 @@ public class ExamProblemController {
         }
         Collections.sort(rankingListDataList);
         model.addAttribute("examId", examId);
+        if (selectClassName != null && !selectClassName.equals("")) {
+            model.addAttribute("selectClassName", selectClassName);
+            classNameList.remove(selectClassName);
+            classNameList.add("");
+        }
+        if (keyword != null && !keyword.equals("")) {
+            model.addAttribute("keyword", keyword);
+        }
+        model.addAttribute("classNames", classNameList);
         model.addAttribute("rankingListData", rankingListDataList);
         return "exam/questionSet/ranking";
     }
@@ -962,6 +1008,8 @@ public class ExamProblemController {
     public class RankingListData implements Comparable<RankingListData> {
 
         private String userId;
+
+        private String className;
 
         private String userName;
 

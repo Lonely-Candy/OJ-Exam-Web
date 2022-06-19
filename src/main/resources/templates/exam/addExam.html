@@ -54,7 +54,7 @@
 <script th:src="@{/js/moment.min.js}"></script>
 <script th:src="@{/js/zh-cn.js}"></script>
 <script th:src="@{/js/daterangepicker.min.js}"></script>
-<script>
+<script th:inline="javascript">
     const getTimeDifference = function (startDate, endDate) {
         // 计算出时间差的毫秒数
         var date3 = endDate.getTime() - startDate.getTime()
@@ -89,7 +89,7 @@
     });
 
     $(document).ready(function () {
-        $('#exampleInputLength').val(1439);
+        $('#exampleInputLength').val([[${exam != null ? 1439 : exam.length }]]);
     });
 </script>
 </body>

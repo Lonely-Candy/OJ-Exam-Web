@@ -184,7 +184,7 @@ public class ExamController {
                 StarJobInit.examMap.put(exam.getId(), exam);
             }
         }
-        return "redirect:/exam/examList";
+        return "redirect:/exam/examList/1";
     }
 
     /**
@@ -246,7 +246,7 @@ public class ExamController {
     public String stopExam(@PathVariable("examId") Integer examId) {
         // 关闭考试
         examService.updateById(new Exam().setId(examId).setFlag(0));
-        return "redirect:/exam/examList";
+        return "redirect:/exam/examList/1";
     }
 
     @PostMapping("/findExam")

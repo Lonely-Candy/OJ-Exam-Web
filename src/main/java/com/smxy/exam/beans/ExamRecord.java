@@ -41,6 +41,11 @@ public class ExamRecord implements Serializable {
     private String userId;
 
     /**
+     * 班级
+     */
+    private String className;
+
+    /**
      * 学生姓名
      */
     private String userName;

@@ -81,10 +81,10 @@ public class StudentExamController {
         User user = (User) session.getAttribute("loginUserData");
         Exam exam = examService.getById(examId);
         if (exam.getFlag() == -1) {
-            return "redirect:/exam/examList?message=exam_isNotStarted";
+            return "redirect:/exam/examList/1?message=exam_isNotStarted";
         }
         if (exam.getFlag() == 0) {
-            return "redirect:/exam/examList?message=exam_isOver";
+            return "redirect:/exam/examList/1?message=exam_isOver";
         }
         Wrapper<ExamRecord> queryWrapper = new QueryWrapper<ExamRecord>()
                 .eq("exam_id", examId).eq("user_id", user.getUserid());
@@ -92,7 +92,7 @@ public class StudentExamController {
         if (examRecord == null || examRecord.getSubmitTime() == null) {
             if (examRecord == null) {
                 examRecord = new ExamRecord().setExamId(examId).setBeginTime(new Date())
-                        .setUserId(user.getUserid()).setUserName(user.getName());
+                        .setUserId(user.getUserid()).setUserName(user.getName()).setClassName(user.getClassName());
                 examRecordService.save(examRecord);
             }
             List<ProblemBankController.ProblemShowData> completionProblems = getCompletionProblemList(examId, false);
