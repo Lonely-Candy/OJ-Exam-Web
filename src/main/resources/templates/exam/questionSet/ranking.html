@@ -226,12 +226,8 @@
 <!-- CodeMirror -->
 <script th:src="@{/hAdmin/js/plugins/codemirror/codemirror.js}"></script>
 <script th:src="@{/hAdmin/js/plugins/codemirror/mode/javascript/javascript.js}"></script>
-<script th:inline="javascript">
-    // 列表数据
-    const rankingListData = [[${rankingListData}]];
-    let editor_two;
-    let source;
 
+<script>
     $(function () {
         $('.full-height-scroll').slimScroll({
             height: '100%'
@@ -239,32 +235,160 @@
     });
 
     /**
-     * 模态框显示时加载代码编辑器
+     * 查询题目
      */
-    $("#showProgrammeDetailModal").on('shown.bs.modal', function () {
-        if (editor_two != null) {
-            editor_two.toTextArea();
+    const queryRecord = function () {
+        let keyword = $("#keyword_input").val();
+        let selected = $("#className_select").children('option:selected').val();
+        let pathName = window.location.pathname;
+        if (keyword != null && keyword != "" && selected != null && selected != "") {
+            window.location.href = pathName + "?selectClassName=" + encodeURI(selected) + "&keyword=" + encodeURI(keyword);
+        } else if (selected != null && selected != "") {
+            window.location.href = pathName + "?selectClassName=" + encodeURI(selected);
+        } else if (keyword != null && keyword != "") {
+            window.location.href = pathName + "?keyword=" + encodeURI(keyword);
+        } else {
+            window.location.href = pathName;
         }
-        editor_two = CodeMirror.fromTextArea(document.getElementById("code2"), {
-            lineNumbers: true,
-            matchBrackets: true,
-            styleActiveLine: true,
-        });
-        editor_two.refresh();
-        editor_two.setValue(source);
-    })
+    };
 
     /**
-     * 获取显示的状态
+     * 页面初始化
      */
-    const getStatesClass = function (e) {
-        if (e == "答案正确") {
-            return "label label-info";
-        } else if (e == "格式错误") {
-            return "label label-warning"
-        } else {
-            return "label label-danger";
+    $(document).ready(function () {
+        $("#className_select").change(function () {
+            queryRecord()
+        });
+    })
+</script>
+
+<script th:inline="javascript">
+    let rankingListData = [[${rankingListData}]];
+
+    /**
+     * 修改填空题分数
+     */
+    const changeScoreCompletion = function (id, index, listId, username, userId, examId) {
+        let score = $("#student_score_c").val();
+        $.get("/exam/changeCompletionScore/" + id + "?score=" + score, function (data, status) {
+            if (status == 'success') {
+                if (data.code == 777) {
+                    swal({title: "成功", message: "修改分数成功", type: 'success'}, function () {
+                        // 修改当前页面中的数据
+                        let problemShowData = rankingListData[index].completionShowDataList;
+                        problemShowData[listId].score = score;
+                        problemShowData[listId].isChange = 1;
+                        // 关闭模态框
+                        closeModal('showCompletionDetailModal');
+                        // 重新打开模态框
+                        showAllProblem(index, 'completion', userId, username, examId);
+                    });
+                } else {
+                    swal("修改分数失败", data.message, 'warning');
+                }
+            } else {
+                swal("服务器异常", "请联系管理员", 'error');
+            }
+        })
+    }
+
+    /**
+     * 修改编程填空题分数
+     */
+    const changeScoreProgramme = function (index, ids, listId, userId, username, examId) {
+        let scores = new Array();
+        for (let i = 0; i < ids.length; i++) {
+            let score = $("#input_" + ids[i]).val();
+            scores.push(score);
         }
+
+        $.post("/exam/changeProgrammeScore", {
+            ids: ids,
+            scores: scores
+        }, function (data, status) {
+            if (status == 'success') {
+                if (data.code == 777) {
+                    let changeIndex = data.data['changeIndex'];
+                    swal({title: "成功", message: "修改分数成功", type: 'success'}, function () {
+                        // 修改当前页面中的数据
+                        let problemShowData = rankingListData[index].programmeShowDataList[listId];
+                        for (let i = 0; i < changeIndex.length; i++) {
+                            let item = changeIndex[i];
+                            problemShowData.testPoints[item].score = scores[item];
+                            problemShowData.testPoints[item].isChange = 1;
+                        }
+                        problemShowData.totalScoreFloat = data.data['changeScore'];
+                        problemShowData.totalScore = problemShowData.totalScoreFloat + "";
+                        console.log(problemShowData);
+                        // 关闭模态框
+                        closeModal('showProgrammeDetailModal');
+                        // 重新打开模态框
+                        showAllProblem(index, 'programme', userId, username, examId);
+                    });
+                } else {
+                    swal("修改分数失败", data.message, 'warning');
+                }
+            } else {
+                swal("服务器异常", "请联系管理员", 'error');
+            }
+        });
+    }
+
+    /**
+     * 显示详细的填空题内容
+     * @param id
+     */
+    const showCompletionDetailProblem = function (id, index, listId, username, userId, examId) {
+        $.get("/exam/getCompletionDetail/" + id, function (data, status) {
+            if (status == "success") {
+                if (data.code == 777) {
+                    let resultData = data.data.problemShowData;
+                    $("#pro_id").attr("value", resultData[0].id);
+                    $("#pro_title").text("填空题-" + resultData[0].proNum + " (" + resultData[0].totalPoints + "分)");
+                    $("#pro_explain").text(resultData[1].adminid + " 创建于 " + resultData[1].time);
+                    $("#pro_context_student").html(resultData[0].replaceContextShowAnswerNoEdit).attr("blankSum", resultData[0].blankSum);
+                    $("#pro_context_correct").html(resultData[1].replaceContextOnlyAnswer);
+                    $("#student_score_c").val(data.data.studentScore);
+                    $("#change_btn_c").attr('onclick', 'changeScoreCompletion(' + id + ',' + index + ','
+                        + listId + ',\'' + username + '\',\'' + userId + '\',' + examId + ')');
+                    $("#showCompletionDetailModal").modal('show');
+                }
+            }
+        })
+    }
+
+    /**
+     * 显示详细的编程填空题的内容
+     */
+    const showProgrammeDetailProblem = function (index, listId, username, userId, examId) {
+        let problemStates = rankingListData[index].programmeShowDataList[listId];
+        source = problemStates.source;
+        // 总状态
+        $("#generalStatus").html("<tr><td>" + problemStates.submitTime.replace("T", " ") + "</td>" +
+            "<td>" + problemStates.totalScore + "</td><td>P-" + problemStates.proNum +
+            "</td><td>" + problemStates.userId + " " + username + "</td></tr>");
+        // 详细状态
+        let htmlValue = "";
+        let ids = new Array();
+        let states = problemStates.testPoints;
+        for (let i = 0; i < states.length; i++) {
+            ids.push(states[i].id);
+            htmlValue += "<tr><td>" + states[i].castId + "</td>";
+            htmlValue += "<td><sapn class='" + getStatesClass(states[i].state) + "'>" + states[i].state + "</sapn></td>";
+            htmlValue += "<td>" + states[i].compiler + "</td>"
+            if (states[i].isChange == 1) {
+                htmlValue += "<td><input id='input_" + states[i].id + "' class='is_change' value='" + states[i].score + "'></td>";
+            } else {
+                htmlValue += "<td><input id='input_" + states[i].id + "' value='" + states[i].score + "'></td>";
+            }
+            htmlValue += "<td>" + problemStates.castIdScoreMap[states[i].castId] + "</td>";
+            htmlValue += "<td>" + states[i].time + " ms</td><td>" + states[i].memory + " KB</td></tr>";
+        }
+        $("#change_btn_p").attr('onclick', 'changeScoreProgramme(' + index + ',' + ids + ',' + listId + ', \''
+            + userId + '\',\'' + username + '\',' + examId + ')');
+        $("#moreProgramme").html(htmlValue);
+        // 加载代码
+        $('#showProgrammeDetailModal').modal('show');
     }
 
     /**
@@ -325,130 +449,11 @@
         $("#moreStatus").html(htmlValue);
         $("#showProblemModal").modal('show');
     }
+</script>
 
-    /**
-     * 显示详细的填空题内容
-     * @param id
-     */
-    const showCompletionDetailProblem = function (id, index, listId, username, userId, examId) {
-        $.get("/exam/getCompletionDetail/" + id, function (data, status) {
-            if (status == "success") {
-                if (data.code == 777) {
-                    let resultData = data.data.problemShowData;
-                    $("#pro_id").attr("value", resultData[0].id);
-                    $("#pro_title").text("填空题-" + resultData[0].proNum + " (" + resultData[0].totalPoints + "分)");
-                    $("#pro_explain").text(resultData[1].adminid + " 创建于 " + resultData[1].time);
-                    $("#pro_context_student").html(resultData[0].replaceContextShowAnswerNoEdit).attr("blankSum", resultData[0].blankSum);
-                    $("#pro_context_correct").html(resultData[1].replaceContextOnlyAnswer);
-                    $("#student_score_c").val(data.data.studentScore);
-                    $("#change_btn_c").click(() => changeScoreCompletion(id, index, listId, username, userId, examId));
-                    $("#showCompletionDetailModal").modal('show');
-                }
-            }
-        })
-    }
-
-    /**
-     * 修改填空题分数
-     */
-    const changeScoreCompletion = function (id, index, listId, username, userId, examId) {
-        let score = $("#student_score_c").val();
-        $.get("/exam/changeCompletionScore/" + id + "?score=" + score, function (data, status) {
-            if (status == 'success') {
-                if (data.code == 777) {
-                    swal({title: "成功", message: "修改分数成功", type: 'success'}, function () {
-                        // 修改当前页面中的数据
-                        let problemShowData = rankingListData[index].completionShowDataList;
-                        problemShowData[listId].score = score;
-                        problemShowData[listId].isChange = 1;
-                        // 关闭模态框
-                        closeModal('showCompletionDetailModal');
-                        // 重新打开模态框
-                        showAllProblem(index, 'completion', userId, username, examId);
-                    });
-                } else {
-                    swal("修改分数失败", data.message, 'warning');
-                }
-            } else {
-                swal("服务器异常", "请联系管理员", 'error');
-            }
-        })
-    }
-
-    /**
-     * 显示详细的编程填空题的内容
-     */
-    const showProgrammeDetailProblem = function (index, listId, username, userId, examId) {
-        let problemStates = rankingListData[index].programmeShowDataList[listId];
-        source = problemStates.source;
-        // 总状态
-        $("#generalStatus").html("<tr><td>" + problemStates.submitTime.replace("T", " ") + "</td>" +
-            "<td>" + problemStates.totalScore + "</td><td>P-" + problemStates.proNum +
-            "</td><td>" + problemStates.userId + " " + username + "</td></tr>");
-        // 详细状态
-        let htmlValue = "";
-        let ids = new Array();
-        let states = problemStates.testPoints;
-        for (let i = 0; i < states.length; i++) {
-            ids.push(states[i].id);
-            htmlValue += "<tr><td>" + states[i].castId + "</td>";
-            htmlValue += "<td><sapn class='" + getStatesClass(states[i].state) + "'>" + states[i].state + "</sapn></td>";
-            htmlValue += "<td>" + states[i].compiler + "</td>"
-            if (states[i].isChange == 1) {
-                htmlValue += "<td><input id='input_" + states[i].id + "' class='is_change' value='" + states[i].score + "'></td>";
-            } else {
-                htmlValue += "<td><input id='input_" + states[i].id + "' value='" + states[i].score + "'></td>";
-            }
-            htmlValue += "<td>" + problemStates.castIdScoreMap[states[i].castId] + "</td>";
-            htmlValue += "<td>" + states[i].time + " ms</td><td>" + states[i].memory + " KB</td></tr>";
-        }
-        $("#change_btn_p").click(() => changeScoreProgramme(index, ids, listId, userId, username, examId));
-        $("#moreProgramme").html(htmlValue);
-        // 加载代码
-        $('#showProgrammeDetailModal').modal('show');
-    }
-
-    /**
-     * 修改编程填空题分数
-     */
-    const changeScoreProgramme = function (index, ids, listId, userId, username, examId) {
-        let scores = new Array();
-        for (let i = 0; i < ids.length; i++) {
-            let score = $("#input_" + ids[i]).val();
-            scores.push(score);
-        }
-
-        $.post("/exam/changeProgrammeScore", {
-            ids: ids,
-            scores: scores
-        }, function (data, status) {
-            if (status == 'success') {
-                if (data.code == 777) {
-                    let changeIndex = data.data['changeIndex'];
-                    swal({title: "成功", message: "修改分数成功", type: 'success'}, function () {
-                        // 修改当前页面中的数据
-                        let problemShowData = rankingListData[index].programmeShowDataList[listId];
-                        for (let i = 0; i < changeIndex.length; i++) {
-                            let item = changeIndex[i];
-                            problemShowData.testPoints[item].score = scores[item];
-                            problemShowData.testPoints[item].isChange = 1;
-                        }
-                        problemShowData.totalScoreFloat = data.data['changeScore'];
-                        problemShowData.totalScore = problemShowData.totalScoreFloat + "";
-                        console.log(problemShowData);
-                        // 关闭模态框
-                        closeModal('showProgrammeDetailModal');
-                        // 重新打开模态框
-                        showAllProblem(index, 'programme', userId, username, examId);
-                    });
-                } else {
-                    swal("修改分数失败", data.message, 'warning');
-                }
-            } else {
-                swal("服务器异常", "请联系管理员", 'error');
-            }
-        });
-    }
+<script th:inline="javascript">
+    let editor_two;
+    let source;
 
     /**
      * 关闭模态框
@@ -470,42 +475,33 @@
     }
 
     /**
-     * 查询题目
+     * 模态框显示时加载代码编辑器
      */
-    const queryRecord = function () {
-        let keyword = $("#keyword_input").val();
-        let selected = $("#className_select").children('option:selected').val();
-        let pathName = window.location.pathname;
-        if (keyword != null && keyword != "" && selected != null && selected != "") {
-            window.location.href = pathName + "?selectClassName=" + selected + "&keyword=" + keyword;
-        } else if (selected != null && selected != "") {
-            window.location.href = pathName + "?selectClassName=" + selected;
-        } else if (keyword != null && keyword != "") {
-            window.location.href = pathName + "?keyword=" + keyword;
-        } else {
-            window.location.href = pathName;
+    $("#showProgrammeDetailModal").on('shown.bs.modal', function () {
+        if (editor_two != null) {
+            editor_two.toTextArea();
         }
-    };
-
-    /**
-     * input回车监听
-     * @param e
-     */
-    $('#keyword_input').bind('keydown', function (event) {
-        // 回车事件
-        if (event.keyCode == 13) {
-            queryRecord();
-        }
-    })
-
-    /**
-     * 页面初始化
-     */
-    $(document).ready(function () {
-        $("#className_select").change(function () {
-            queryRecord()
+        editor_two = CodeMirror.fromTextArea(document.getElementById("code2"), {
+            lineNumbers: true,
+            matchBrackets: true,
+            styleActiveLine: true,
         });
+        editor_two.refresh();
+        editor_two.setValue(source);
     })
+
+    /**
+     * 获取显示的状态
+     */
+    const getStatesClass = function (e) {
+        if (e == "答案正确") {
+            return "label label-info";
+        } else if (e == "格式错误") {
+            return "label label-warning"
+        } else {
+            return "label label-danger";
+        }
+    }
 </script>
 </body>
 </html>
