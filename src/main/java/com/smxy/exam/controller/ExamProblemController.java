@@ -242,16 +242,42 @@ public class ExamProblemController {
      * @date 2022-04-30 11:52
      */
     @GetMapping("/toStateList/{examId}/{index}")
-    public String toStateListPage(@PathVariable Integer examId, @PathVariable Integer index, Model model) {
+    public String toStateListPage(@PathVariable Integer examId, @PathVariable Integer index, Model model
+            , @PathParam("selectProblemNum") String selectProblemNum
+            , @PathParam("keyword") String keyword) {
         // 查询考试对应的所有记录
         Page page = new Page(index, 18);
-        Wrapper<ExamProcedureStatus> queryWrapper = new QueryWrapper<ExamProcedureStatus>()
+        QueryWrapper<ExamProcedureStatus> queryWrapper = queryWrapper = new QueryWrapper<ExamProcedureStatus>()
                 .eq("exam_Id", examId).orderByDesc("submit_time");
+        if (selectProblemNum != null && !selectProblemNum.equals("")) {
+            queryWrapper.eq("problem_num", selectProblemNum);
+            page.setSize(1000);
+        }
+        if (keyword != null && !keyword.equals("")) {
+            queryWrapper.like("user_id", keyword);
+            page.setSize(1000);
+        }
         examProcedureStatusService.page(page, queryWrapper);
         List<ExamProcedureStatus> examProcedureStatuses = page.getRecords();
         List<ProblemStateListData> problemStateListDataList = ProblemStateListData.getProblemStateListDataNoGroup(examProcedureStatuses);
+        // 查询所有的班级
+        Wrapper<ExamProcedureStatus> queryWrapperProblemNum = new QueryWrapper<ExamProcedureStatus>().select("problem_num")
+                .groupBy("problem_num").eq("exam_id", examId);
+        List<String> problemNums = examProcedureStatusService.listObjs(queryWrapperProblemNum, a -> {
+            return a.toString();
+        });
+        // 封装关键字
+        if (selectProblemNum != null && !selectProblemNum.equals("")) {
+            model.addAttribute("selectProblemNum", selectProblemNum);
+            problemNums.remove(selectProblemNum);
+            problemNums.add("");
+        }
+        if (keyword != null && !keyword.equals("")) {
+            model.addAttribute("keyword", keyword);
+        }
         model.addAttribute("examId", examId);
         model.addAttribute("page", page);
+        model.addAttribute("problemNums", problemNums);
         model.addAttribute("problemStates", problemStateListDataList);
         return "exam/questionSet/submitCondition";
     }

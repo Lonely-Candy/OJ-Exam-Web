@@ -26,6 +26,26 @@
                     <i class="fa fa-refresh"></i> 刷新记录
                 </button>
             </div>
+            <!-- 搜索栏 -->
+            <div>
+                <form style="margin-top: 10px" role="form" class="form-inline">
+                    <div class="form-group mx-sm-3">
+                        <label class="sr-only">班级</label>
+                        <select id="problemNum_select" class="form-control class_name_select">
+                            <option>[[${selectProblemNum}]]</option>
+                            <option th:each="problemNum:${problemNums}">[[${problemNum}]]</option>
+                        </select>
+                    </div>
+                    <div class="form-group mx-sm-3">
+                        <label class="sr-only">模糊搜索</label>
+                        <input id="keyword_input" th:value="${keyword}" type="text" class="form-control"
+                               placeholder="请输入学生学号">
+                    </div>
+                    <div class="form-group mx-sm-3">
+                        <button onclick="queryRecord()" class="btn btn-primary" type="button">搜索</button>
+                    </div>
+                </form>
+            </div>
             <!-- 学生提交 -->
             <div style="margin-top: 20px">
                 <table class="table">
@@ -163,6 +183,24 @@
     let source;
 
     /**
+     * 查询题目
+     */
+    const queryRecord = function () {
+        let keyword = $("#keyword_input").val();
+        let selected = $("#problemNum_select").children('option:selected').val();
+        let pathName = window.location.pathname;
+        if (keyword != null && keyword != "" && selected != null && selected != "") {
+            window.location.href = pathName + "?selectProblemNum=" + selected + "&keyword=" + keyword;
+        } else if (selected != null && selected != "") {
+            window.location.href = pathName + "?selectProblemNum=" + selected;
+        } else if (keyword != null && keyword != "") {
+            window.location.href = pathName + "?keyword=" + keyword;
+        } else {
+            window.location.href = pathName;
+        }
+    };
+
+    /**
      * 模态框显示时加载代码编辑器
      */
     $("#showScore").on('shown.bs.modal', function () {
@@ -222,7 +260,6 @@
     const refresh = function () {
         window.history.go(0);
     }
-
 </script>
 </body>
 </html>

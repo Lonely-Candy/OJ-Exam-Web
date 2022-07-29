@@ -42,7 +42,7 @@ public class MyMvcConfig {
             public void addInterceptors(InterceptorRegistry registry) {
                 // 排除不需要登录拦截的页面、请求和静态资源
                 registry.addInterceptor(new LoginLerInterceptor()).addPathPatterns("/**")
-                        .excludePathPatterns("/", "/index.html", "/login.html", "/login", "/error")
+                        .excludePathPatterns("/", "/index.html", "/login.html", "/login", "/error", "/lockip")
                         .excludePathPatterns("/css/**", "/image/**", "/webjars/**");
                 // 学生操作拦截
                 registry.addInterceptor(new ExamLerInterceptor()).addPathPatterns("/student/**");

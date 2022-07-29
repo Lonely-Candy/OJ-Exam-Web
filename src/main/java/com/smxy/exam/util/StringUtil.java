@@ -20,6 +20,8 @@ public class StringUtil {
 
     private static final Pattern pattern = Pattern.compile("<.+?>", Pattern.DOTALL);
 
+    private static final String base64hash = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
     /**
      * 反转义字符
      *
@@ -160,6 +162,41 @@ public class StringUtil {
             code.append("\n");
         }
         return code.toString();
+    }
+
+    /**
+     * 将加密的 IP 进行解密，实现的算法实际就是 JS 中的解密算法 atob，加密算法是 btoa
+     */
+    public static String decodeIP(String encryptIpValue) {
+        if (encryptIpValue == null) {
+            return null;
+        }
+        encryptIpValue = encryptIpValue.replaceAll("\\s|=", "");
+        StringBuilder result = new StringBuilder();
+        int cur;
+        int prev = -1;
+        int mod;
+        int i = 0;
+        while (i < encryptIpValue.length()) {
+            cur = base64hash.indexOf(encryptIpValue.charAt(i));
+            mod = i % 4;
+            switch (mod) {
+                case 0:
+                    break;
+                case 1:
+                    result.append(String.valueOf((char) (prev << 2 | cur >> 4)));
+                    break;
+                case 2:
+                    result.append(String.valueOf((char) ((prev & 0x0f) << 4 | cur >> 2)));
+                    break;
+                case 3:
+                    result.append(String.valueOf((char) ((prev & 3) << 6 | cur)));
+                    break;
+            }
+            prev = cur;
+            i++;
+        }
+        return result.toString();
     }
 
 }

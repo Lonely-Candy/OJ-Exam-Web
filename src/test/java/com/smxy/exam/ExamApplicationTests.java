@@ -45,19 +45,14 @@ class ExamApplicationTests {
                 , "root", "fsy123")
                 .globalConfig(builder -> {
                     builder.author("fsy").fileOverride()
-                            .outputDir("D:\\Projcets\\ideaProjects\\exam\\src\\main\\java");
+                            .outputDir("D:\\Projcets\\diplomaProject\\website\\exam\\src\\main\\java");
                 })
                 .packageConfig(builder -> {
                     builder.parent("com.smxy.exam").mapper("mapper").service("service")
                             .controller("controller").entity("beans").xml("mapper.xml");
                 })
                 .strategyConfig(builder -> {
-                    builder.addInclude("admin", "user", "exam"
-                            , "exam_completion_bank", "exam_completion_problem"
-                            , "exam_completion_status"
-                            , "exam_procedure_bank", "exam_procedure_problem"
-                            , "exam_procedure_status"
-                            , "exam_record")
+                    builder.addInclude("lockip")
                             .entityBuilder().enableLombok().enableChainModel()
                             .controllerBuilder().enableRestStyle()
                             .mapperBuilder().enableMapperAnnotation();
